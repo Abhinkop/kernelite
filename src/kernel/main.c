@@ -15,10 +15,12 @@
 #include "fdt/fdt.h"
 #include "utils/utils.h"
 #include "linker/symbols.h"
+#include "mmu/mmu.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <libfdt.h>
 
 #ifdef RUN_TESTS
 
@@ -104,16 +106,30 @@ int main(const uint64_t *boot_args_ptr)
 	}
 
 	// Id map uart before setting up allocator.
-	bool uart_mapped = map_page(get_id_map_root(), uart0_base, uart0_base,
-				    (page_permissions_t){ .execute = false,
-							  .read = true,
-							  .write = true });
+	bool uart_mapped =
+		map_page(get_id_map_root(), uart0_base, uart0_base,
+			 (page_permissions_t){ .execute = false,
+					       .read = true,
+					       .write = true,
+					       .user_accessible = false },
+			 device);
 	if (!uart_mapped) {
 		kprintf("Error while id mapping uart\n");
 		return 1;
 	}
 
-	setup_global_allocator(fdt_addr);
+	dump_memory_map(get_id_map_root());
+
+	kprintf("fdt adrr = 0x%lx size = 0x%lx\n", (virt_addr)fdt_addr,
+		fdt_totalsize(fdt_addr));
+
+	if (!enable_mmu((page_table_t *)get_id_map_root())) {
+		kprintf("Error while setting up mmu\n");
+		return 1;
+	}
+
+	// setup_global_allocator(fdt_addr);
+	// Do this after setting up the kernal high maapings.
 
 	kprintf("Hello World!\n");
 
