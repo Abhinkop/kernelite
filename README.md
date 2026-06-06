@@ -1,5 +1,8 @@
 # Kernalite
 
+[![Build](https://github.com/Abhinkop/kernalite/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Abhinkop/kernalite/actions/workflows/build.yml?query=branch%3Amain)
+[![Docs](https://img.shields.io/badge/docs-live-blue?style=flat)](https://abhinkop.github.io/kernalite/)
+
 **Kernalite** is a minimalist, educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction.
 
 ## 🎯 Project Goals
