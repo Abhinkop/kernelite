@@ -16,15 +16,33 @@
 
 extern void exit(uint32_t code);
 
-/* ESR_EL1 Exception Class values for abort types. */
+/** Shift for extracting exception class */
 #define ESR_EC_SHIFT 26U
-#define ESR_EC_MASK 0x3FU
-#define ESR_EC_IABT_LOW 0x20U /* Instruction Abort from lower EL  */
-#define ESR_EC_IABT_CUR 0x21U /* Instruction Abort from current EL */
-#define ESR_EC_DABT_LOW 0x24U /* Data Abort from lower EL         */
-#define ESR_EC_DABT_CUR 0x25U /* Data Abort from current EL       */
-#define ESR_ISS_WNR_BIT (1U << 6) /* ISS[6]: Write-not-Read           */
 
+/** Mask for extracting exception class */
+#define ESR_EC_MASK 0x3FU
+
+/** Instruction Abort from lower EL  */
+#define ESR_EC_IABT_LOW 0x20U
+
+/** Instruction Abort from current EL */
+#define ESR_EC_IABT_CUR 0x21U
+
+/** Data Abort from lower EL         */
+#define ESR_EC_DABT_LOW 0x24U
+
+/** Data Abort from current EL       */
+#define ESR_EC_DABT_CUR 0x25U
+
+/** ISS[6]: Write-not-Read           */
+#define ESR_ISS_WNR_BIT (1U << 6)
+
+/**
+ * @brief Generic exception handler used during early bring-up.
+ *
+ * Prints register context and fault information for a trapped exception,
+ * then halts the kernel by invoking the exit path.
+ */
 void generic_handler(void)
 {
 	kprintf("Generic Handler invoked\n");

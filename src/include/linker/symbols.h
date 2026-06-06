@@ -8,8 +8,8 @@
  * @author Abhin Parekadan Jose
  * @date 2026-04-12
  */
-#ifndef LINKER_SYMBLOS_H
-#define LINKER_SYMBLOS_H
+#ifndef LINKER_SYMBOLS_H
+#define LINKER_SYMBOLS_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -29,18 +29,19 @@ extern uint8_t kernel_pg_dir_root_start[];
  */
 extern uint8_t page_allocator_bit_map_start[];
 
-/**
- * @brief Image start and end symbols provided by the linker script.
- *
- * These are linker-defined symbols and do not occupy storage; treat them
- * as pointers whose difference yields the image size.
- */
+/** @brief Linker-provided symbol marking the start of the linked image. */
 extern const char image_start;
+
+/** @brief Linker-provided symbol marking the end of the linked image. */
 extern const char image_end;
 
-/*
- * Return the size of the linked image in bytes.
- * Uses the linker-provided `image_start` and `image_end` symbols.
+/**
+ * @brief Return the size of the linked image in bytes.
+ *
+ * Uses the linker-provided `image_start` and `image_end` symbols injected
+ * by the linker script to compute the kernel image size.
+ *
+ * @return The number of bytes in the linked kernel image.
  */
 static inline size_t get_image_size(void)
 {
@@ -56,4 +57,4 @@ static inline void *get_id_map_root()
 	return (void *)&idmap_pg_dir_start;
 }
 
-#endif // LINKER_SYMBLOS_H
+#endif // LINKER_SYMBOLS_H

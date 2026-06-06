@@ -26,8 +26,9 @@
 
 /**
  * @brief Run internal kernel tests.
- * * This function is called when the RUN_TESTS flag is set during compilation.
- * * It executes a suite of internal tests to validate kernel functionality
+ *
+ * This function is called when the RUN_TESTS flag is set during compilation.
+ * It executes a suite of internal tests to validate kernel functionality
  * before proceeding with normal operation. The results of the tests are
  * printed to the console, and the system exits with an appropriate code based
  * on the test outcomes.
@@ -38,13 +39,16 @@ extern void run_internal_tests(const void *fdt_addr);
 
 #endif /* RUN_TESTS */
 
+/** Global UART0 device instance */
 static uart_device_t uart0;
 
 /**
  * @brief Captured bootloader arguments.
- * * Stores the raw values of registers x0 through x3 as passed by the
+ *
+ * Stores the raw values of registers x0 through x3 as passed by the
  * bootloader (e.g., U-Boot) at the moment of kernel entry.
- * * - boot_args[0]: Physical address of the Device Tree Blob (FDT).
+ *
+ * - boot_args[0]: Physical address of the Device Tree Blob (FDT).
  * - boot_args[1]: Reserved (0).
  * - boot_args[2]: Reserved (0).
  * - boot_args[3]: Reserved (0).
@@ -53,10 +57,12 @@ uint64_t boot_args[4];
 
 /**
  * @brief UART0 Character Output Function.
- * * This function is designed to be used as the 'putc' function in the
+ *
+ * This function is designed to be used as the 'putc' function in the
  * serial_t structure for kprintf. It abstracts the hardware-specific details
  * of writing a character to the UART0 data register.
- * * @param chr The character to be transmitted over UART0.
+ *
+ * @param chr The character to be transmitted over UART0.
  */
 void uart0_putchar(char chr)
 {
@@ -78,7 +84,8 @@ void print_memory_map(const Memory_map_t *mmap)
 
 /**
  * @brief Kernel Main Entry Point.
- * * Called from primary_entry (boot.s) after the stack has been initialized
+ *
+ * Called from primary_entry (boot.s) after the stack has been initialized
  * and the BSS section has been cleared.
  * @note This function should never return.
  * @param boot_args_ptr Pointer to an array containing the bootloader arguments

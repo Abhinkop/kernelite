@@ -77,9 +77,6 @@ void *memset(void *s_ptr, int val, size_t size)
 	return s_ptr;
 }
 
-/**
- * @brief Finds the first occurrence of 'chr' in string 's'.
- */
 char *strchr(const char *str, int chr)
 {
 	while (1) {

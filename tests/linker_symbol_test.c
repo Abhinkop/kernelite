@@ -1,6 +1,7 @@
 /**
  * @file linker_symbol_test.c
- * @brief Test suite for verifying linker symbols and their values.
+ * @brief Test suite for verifying linker symbol layout and linker-defined
+ * addresses.
  */
 
 #include "../src/include/linker/symbols.h"
@@ -47,6 +48,12 @@ bool linker_symbols(void)
 	return true;
 }
 
+/**
+ * @brief Return the linker symbol test suite.
+ *
+ * @return A fully populated test suite containing the linker symbol regression
+ *         test.
+ */
 test_suite_t get_linker_symbol_test_suite(void)
 {
 	test_suite_t suite = { .suite_name = "linker_symbols",

@@ -2,12 +2,26 @@
 /**
  * @file exit.c
  * @brief Provides a mechanism to exit QEMU with a specific code.
+ *
+ * Uses the semihosting SYS_EXIT call (HLT #0xF000) to terminate the QEMU
+ * guest and propagate an exit code back to the host.
+ *
+ * @author Abhin Parekadan Jose
+ * @date 2026-04-25
  */
 
 #include "utils/kprintf.h"
 
 #include <stdint.h>
 
+/**
+ * @brief Exit the guest environment with a semihosting code.
+ *
+ * Uses the ARM semihosting SYS_EXIT operation to terminate execution under
+ * QEMU and report the provided status code to the host.
+ *
+ * @param code Host-visible exit status.
+ */
 [[noreturn]] void exit(uint32_t code)
 {
 	kprintf("Exiting QEMU with code: %u\n", code);

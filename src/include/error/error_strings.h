@@ -17,7 +17,8 @@
 /**
  * @def STRING_MAP
  * @brief master mapping table for error codes and strings.
- * * This macro uses the X-Macro pattern: X(constant, string).
+ *
+ * This macro uses the X-Macro pattern: X(constant, string).
  * To add a new error message, define the constant in error_codes.h
  * and add a corresponding entry here.
  */
@@ -27,14 +28,17 @@
 
 /**
  * @brief Converts a numeric error code into a human-readable string.
- * * This function maps internal kernel error constants (e.g.,
+ *
+ * This function maps internal kernel error constants (e.g.,
  * ERROR_CODE_NOT_EL1) to descriptive string literals. It is primarily used by
  * the panic handler to provide diagnostic feedback over UART when a fatal error
  * occurs.
- * * @param code The numeric error code triggered by the kernel or bootloader.
+ *
+ * @param code The numeric error code triggered by the kernel or bootloader.
  * @return A pointer to a constant null-terminated string representing the
  * error. Returns "UNKNOWN" if the code is not recognized.
- * * @note This function is designed to be safe for use during early boot or
+ *
+ * @note This function is designed to be safe for use during early boot or
  * panic states; it does not allocate memory and relies solely on
  * strings stored in the .rodata section.
  */

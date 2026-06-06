@@ -1,8 +1,10 @@
 /**
+ * @file page_table_map_test.c
  * @brief Tests for page table mapping functionality.
+ *
  * Validates that virtual addresses are correctly mapped to physical addresses
- * with the appropriate permissions, and that the page tables are structured
- * correctly.
+ * with the appropriate permissions and that the resulting page table
+ * structures are consistent.
  */
 
 #include "../src/include/page_table/page_table.h"
@@ -15,6 +17,16 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/**
+ * @brief Retrieve a next-level page table pointer from a table descriptor.
+ *
+ * This test helper reassembles the physical address stored in a table
+ * descriptor and returns the corresponding virtual pointer.
+ *
+ * @param entry Pointer to the table descriptor.
+ * @return Pointer to the next-level page table, or NULL if the entry is
+ * invalid.
+ */
 static inline page_table_t *
 get_page_table_entry_address(const table_desc_t *entry)
 {
@@ -36,6 +48,14 @@ get_page_table_entry_address(const table_desc_t *entry)
 	return (page_table_t *)phys_addr;
 }
 
+/**
+ * @brief Retrieve a physical frame address from a page descriptor.
+ *
+ * Reconstructs the fragmented page frame address from the descriptor fields.
+ *
+ * @param entry Pointer to the page descriptor.
+ * @return Physical frame address, or 0 if the descriptor is invalid.
+ */
 static inline phy_addr get_page_desc_entry_address(const page_desc_t *entry)
 {
 	// Return a clean numeric 0 if the mapping is invalid
@@ -52,6 +72,17 @@ static inline phy_addr get_page_desc_entry_address(const page_desc_t *entry)
 	return phys_addr;
 }
 
+/**
+ * @brief Verify that a virtual address maps to the expected physical frame.
+ *
+ * Walks the four-level page table hierarchy and verifies the resulting L3
+ * page descriptor points to @p expected_pa.
+ *
+ * @param root        Root of the page table hierarchy.
+ * @param v_addr      Virtual address being verified.
+ * @param expected_pa Expected physical address for the mapping.
+ * @return true when the mapping is correct.
+ */
 bool verify_map(page_table_t *root, virt_addr v_addr, phy_addr expected_pa)
 {
 	// Get Indices
@@ -98,6 +129,15 @@ bool test_page_table_mapping(page_table_t *root, virt_addr v_addr,
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
+/**
+ * @brief Run the page table mapping regression tests.
+ *
+ * Verifies the kernel page table implementation can allocate intermediate
+ * tables and install valid L3 page mappings for a range of virtual address
+ * regions.
+ *
+ * @return true when all test vectors pass.
+ */
 bool page_table_map(void)
 {
 	page_table_t *root = (page_table_t *)page_alloc(1);
@@ -185,6 +225,14 @@ bool page_table_map(void)
 	return true;
 }
 
+/**
+ * @brief Verify the initial identity page table map can be created.
+ *
+ * Ensures the kernel can initialize the static identity-map root pages and
+ * set up a simple device mapping for the UART base address.
+ *
+ * @return true when the identity map initialization succeeds.
+ */
 bool init_page_table_map(void)
 {
 	virt_addr uart0_base = 0x09000000;
@@ -196,6 +244,14 @@ bool init_page_table_map(void)
 	return true;
 }
 
+/**
+ * @brief Return the page table test suite.
+ *
+ * Populates the suite structure with page table test cases for the test
+ * runner.
+ *
+ * @return A fully initialized test suite containing page table tests.
+ */
 test_suite_t get_page_table_test_suite(void)
 {
 	_Static_assert(sizeof(page_table_entry_t) == 8,

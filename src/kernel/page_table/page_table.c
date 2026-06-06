@@ -20,15 +20,26 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/** Shift for page offset */
 #define PAGE_SHIFT 12U
+
+/** Index mask for page table entries */
 #define IDX_MASK 0x1FFUL
 
-/* Physical address field shifts and masks (ARMv8/ARMv9 4KB granule) */
-#define PA_47_12_MASK 0xFFFFFFFFFULL /* 36-bit field: PA[47:12] */
+/** 36-bit field: PA[47:12] */
+#define PA_47_12_MASK 0xFFFFFFFFFULL
+
+/** Shift for PA[49:48] */
 #define PA_49_48_SHIFT 48U
-#define PA_49_48_MASK 0x3ULL /* 2-bit field:  PA[49:48] */
+
+/** 2-bit field:  PA[49:48] */
+#define PA_49_48_MASK 0x3ULL
+
+/** Shift for PA[51:50] */
 #define PA_51_50_SHIFT 50U
-#define PA_51_50_MASK 0x3ULL /* 2-bit field:  PA[51:50] */
+
+/** 2-bit field:  PA[51:50] */
+#define PA_51_50_MASK 0x3ULL
 
 /**
  * @brief Set the physical Next-Level Table Address (NLTA) in a table
@@ -195,6 +206,7 @@ bool allocate_new_table(table_desc_t *entry)
 /**
  * @brief Get the next level table from a page table entry.
  * @param entry Pointer to the page table entry.
+ * @param perms The requested page permissions for the downstream mapping.
  * @return Pointer to the next level page table, or NULL if allocation failed.
  */
 page_table_t *get_next_level_table(table_desc_t *entry,
@@ -380,6 +392,7 @@ void print_table_descriptor(const table_desc_t desc)
 
 /**
  * @brief Helper to generate visual indentation based on the current tree depth.
+ * @param level The current depth level in the page table tree (0 for root).
  */
 static void print_indent(int level)
 {
@@ -388,6 +401,13 @@ static void print_indent(int level)
 	}
 }
 
+/**
+ * @brief Recursively prints the structure of the page table tree starting from
+ * a given base table.
+ * @param table_base Pointer to the base of the current page table level.
+ * @param current_level The current level in the page table hierarchy (0-3).
+ * @param base_va The starting virtual address range covered by this table.
+ */
 // Let the cognitive complexity be there as it will be easier during debugging.
 // NOLINTBEGIN(*-recursion,*-cognitive-complexity,*-nested-conditional-operator)
 void print_page_table_tree(const page_table_entry_t *table_base,

@@ -13,11 +13,13 @@
 #include "utils/kprintf.h"
 #include <stdint.h>
 
+/** Read a system register */
 #define READ_SYS_REG(reg, val)                             \
 	do {                                               \
 		asm volatile("mrs %0, " #reg : "=r"(val)); \
 	} while (0)
 
+/** Write to a system register */
 #define WRITE_SYS_REG(reg, val)                                \
 	do {                                                   \
 		asm volatile("msr " #reg ", %0" : : "r"(val)); \

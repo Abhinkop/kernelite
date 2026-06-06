@@ -1,6 +1,13 @@
 /**
  * @file linker_defines.h
- * @brief #define values used in the linker script and referenced in C code.
+ * @brief Preprocessor define values used in the linker script and referenced
+ * in C code.
+ *
+ * Centralises numeric constants shared between the linker script and the
+ * kernel C sources so both stay in sync without manual duplication.
+ *
+ * @author Abhin Parekadan Jose
+ * @date 2026-04-12
  */
 #ifndef LINKER_LINKER_DEFINES_H
 #define LINKER_LINKER_DEFINES_H

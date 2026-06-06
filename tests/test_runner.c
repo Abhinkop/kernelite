@@ -1,5 +1,6 @@
 /**
- * Test runner for executing kernel tests.
+ * @file test_runner.c
+ * @brief Test runner for executing kernel tests.
  */
 
 #include "../src/include/utils/kprintf.h"
@@ -32,21 +33,45 @@ static inline void qemu_exit(uint32_t code)
 }
 
 /**
- * @breif list of all test suites to run. Each suite contains multiple tests.
- * The test runner will execute all tests in all suites and report results.
+ * @file test_runner.c
+ * @brief Test runner for executing kernel tests under QEMU.
+ *
+ * Provides the entry point for running the statutory kernel test suites when
+ * the RUN_TESTS build flag is enabled.
+ */
+
+/**
+ * @brief Retrieve the page table test suite.
+ *
+ * This function is implemented by the page table test module and returns a
+ * fully populated suite structure containing all page table regression tests.
+ *
+ * @return A test suite structure with page table tests.
  */
 extern test_suite_t get_page_table_test_suite(void);
+
+/**
+ * @brief Retrieve the linker symbol test suite.
+ *
+ * This function is implemented by the linker symbol test module and returns a
+ * fully populated suite structure containing all linker layout validation
+ * tests.
+ *
+ * @return A test suite structure with linker symbol tests.
+ */
 extern test_suite_t get_linker_symbol_test_suite(void);
 
 /**
  * @brief Run internal kernel tests.
- * * This function is called when the RUN_TESTS flag is set during compilation.
- * * It executes a suite of internal tests to validate kernel functionality
- * before proceeding with normal operation. The results of the tests are
- * printed to the console, and the system exits with an appropriate code based
- * on the test outcomes.
+ *
+ * This function is called when the RUN_TESTS flag is enabled during
+ * compilation. It executes a suite of internal tests to validate kernel
+ * functionality before proceeding with normal operation. The results of the
+ * tests are printed to the console, and the system exits with an appropriate
+ * code based on the test outcomes.
+ *
  * @param fdt_addr Pointer to the Device Tree Blob (FDT) address passed by the
- * bootloader.
+ *                  bootloader.
  */
 void run_internal_tests(const void *fdt_addr)
 {
