@@ -105,7 +105,7 @@ int main(const uint64_t *boot_args_ptr)
 	run_internal_tests(fdt_addr);
 #endif
 
-	// This needs to done befor setting up the global allocator.
+	// This needs to done before setting up the global allocator.
 	// As it sets a page allocator for the static `idmap_pg_dir_start` area
 	if (!setup_kernel_id_map()) {
 		kprintf("Error while setting up id map\n");
@@ -130,13 +130,13 @@ int main(const uint64_t *boot_args_ptr)
 	kprintf("fdt adrr = 0x%lx size = 0x%lx\n", (virt_addr)fdt_addr,
 		fdt_totalsize(fdt_addr));
 
-	if (!enable_mmu((page_table_t *)get_id_map_root())) {
+	if (!enable_mmu(get_id_map_root())) {
 		kprintf("Error while setting up mmu\n");
 		return 1;
 	}
 
 	// setup_global_allocator(fdt_addr);
-	// Do this after setting up the kernal high maapings.
+	// Do this after setting up the kernel high mappings.
 
 	kprintf("Hello World!\n");
 

@@ -11,6 +11,8 @@
 #ifndef LINKER_SYMBOLS_H
 #define LINKER_SYMBOLS_H
 
+#include "page_table/page_table.h"
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -45,16 +47,16 @@ extern const char image_end;
  */
 static inline size_t get_image_size(void)
 {
-	return (size_t)(&image_end - &image_start);
+	return (size_t)((uintptr_t)&image_end - (uintptr_t)(&image_start));
 }
 
 /**
  * @brief Return the root of the id map
  * @return the pointer to the root of the id map.
  */
-static inline void *get_id_map_root()
+static inline page_table_t *get_id_map_root()
 {
-	return (void *)&idmap_pg_dir_start;
+	return (page_table_t *)&idmap_pg_dir_start;
 }
 
 #endif // LINKER_SYMBOLS_H

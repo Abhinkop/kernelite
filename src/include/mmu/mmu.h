@@ -24,16 +24,16 @@
  */
 enum device_type_t {
 	/** Non-Gathering, Non-Reordering, No early ack */
-	DEVICE_nGnRnE = 0b00,
+	device_nGnRnE = 0b00,
 
 	/** Non-Gathering, Non-Reordering, Early ack    */
-	DEVICE_nGnRE = 0b01,
+	device_nGnRE = 0b01,
 
 	/** Non-Gathering, Reordering,     Early ack    */
-	DEVICE_nGRE = 0b10,
+	device_nGRE = 0b10,
 
 	/** Gathering,     Reordering,     Early ack    */
-	DEVICE_GRE = 0b11,
+	device_GRE = 0b11,
 };
 
 /**

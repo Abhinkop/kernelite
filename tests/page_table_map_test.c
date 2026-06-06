@@ -240,7 +240,7 @@ bool init_page_table_map(void)
 	EXPECT(map_page(get_id_map_root(), uart0_base, uart0_base,
 			(page_permissions_t){
 				.execute = false, .read = true, .write = true },
-			normal))
+			device))
 	return true;
 }
 

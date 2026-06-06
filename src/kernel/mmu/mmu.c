@@ -35,8 +35,8 @@ bool enable_mmu(page_table_t *root)
 	mair_reg_t mair;
 	mair.value = 0;
 
-	// Attribute 0: Device-nGnRE (standard for MMIO/UART/Peripherals)
-	mair.attr[0].device.type = DEVICE_nGnRnE;
+	// Attribute 0: Device-nGnRnE (standard for MMIO/UART/Peripherals)
+	mair.attr[0].device.type = device_nGnRnE;
 	mair.attr[0].device.xs = 0;
 
 	// Attribute 1: Normal Memory, Outer/Inner Write-Back Non-transient
@@ -48,7 +48,7 @@ bool enable_mmu(page_table_t *root)
 	mair.attr[1].normal.inner_write_back = 1;
 	mair.attr[1].normal.inner_read_alloc = 1;
 	mair.attr[1].normal.inner_write_alloc = 1;
-	WRITE_SYS_REG(mair_el1, mair);
+	WRITE_SYS_REG(mair_el1, mair.value);
 
 	// Setup TCR (Translation Control Register)
 	tcr_reg_t tcr;

@@ -679,7 +679,7 @@ bool setup_kernel_id_map(void)
 
 	// Allocate the root Level 0 page table frame from the newly
 	// initialized pool. This should be intentionally done first after the
-	// page allocator is initiliased
+	// page allocator is initialized
 	page_table_t *root = (page_table_t *)page_alloc(1);
 	if (root == NULL ||
 	    // let the check be here to ensure we are using the right map
