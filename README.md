@@ -1,9 +1,9 @@
-# Kernalite
+# Kernelite
 
-[![Build](https://github.com/Abhinkop/kernalite/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Abhinkop/kernalite/actions/workflows/build.yml?query=branch%3Amain)
-[![Docs](https://img.shields.io/badge/docs-live-blue?style=flat)](https://abhinkop.github.io/kernalite/)
+[![Build](https://github.com/Abhinkop/kernelite/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Abhinkop/kernelite/actions/workflows/build.yml?query=branch%3Amain)
+[![Docs](https://img.shields.io/badge/docs-live-blue?style=flat)](https://abhinkop.github.io/kernelite/)
 
-**Kernalite** is a minimalist, educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction.
+**Kernelite** is a minimalist, educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction.
 
 ## 🎯 Project Goals
 * **Multi-Arch Support:** Initially targeting **aarch64** (ARM64), with planned ports for **x86_64** and legacy 32-bit architectures.
@@ -37,8 +37,8 @@ This project requires a cross-compiler (e.g., `aarch64-none-elf-gcc`) to ensure 
 This repository depends on external sources under `external/dtc`, which is tracked as a git submodule.
 When cloning this repository, initialize submodules before building:
 ```bash
-git clone --recurse-submodules https://github.com/Abhinkop/kernalite.git
-cd kernalite
+git clone --recurse-submodules https://github.com/Abhinkop/kernelite.git
+cd kernelite
 make all
 ```
 If you already cloned without submodules, run:
@@ -90,7 +90,7 @@ Below are the main `make` targets supported by this repository:
 * **make tools/register_decoder**: Build the register decoder utility located in `tools/register_decoder/`.
 
 ### Emulation
-To run Kernalite on aarch64 using QEMU:
+To run Kernelite on aarch64 using QEMU:
 ```bash
 make all
 qemu-system-aarch64 -machine virt \
