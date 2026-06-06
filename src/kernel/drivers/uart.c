@@ -1,16 +1,36 @@
+/**
+ * @file uart.c
+ * @brief PL011 UART driver implementation.
+ *
+ * Implements polling-based putc/getc for the ARM PL011 UART and wires them
+ * into the uart_device_t hardware abstraction struct.
+ *
+ * @author Abhin Parekadan Jose
+ * @date 2026-04-25
+ */
+
 #include "uart.h"
 #include <stdint.h>
 
-/* PL011 Register Offsets */
+/** PL011 Data Register offset */
 #define UART_DR 0x00
+
+/** PL011 Flag Register offset */
 #define UART_FR 0x18
 
-/* Flag Register Bits */
-#define UART_FR_TXFF (1 << 5) // Transmit FIFO full
-#define UART_FR_RXFE (1 << 4) // Receive FIFO empty
+/** Transmit FIFO full */
+#define UART_FR_TXFF (1 << 5)
+
+/** Receive FIFO empty */
+#define UART_FR_RXFE (1 << 4)
 
 /**
  * @brief PL011 Specific putc implementation.
+ * Waits for space in the transmit FIFO, then writes the character to the data
+ * register.
+ *
+ * @param dev Pointer to the UART device struct (mmio_base must be set).
+ * @param chr Character to transmit.
  */
 static void pl011_putc(uart_device_t *dev, char chr)
 {
@@ -22,6 +42,8 @@ static void pl011_putc(uart_device_t *dev, char chr)
 
 /**
  * @brief PL011 Specific getc implementation.
+ * @param dev Pointer to the UART device struct (mmio_base must be set).
+ * @return Character received.
  */
 static char pl011_getc(uart_device_t *dev)
 {
@@ -38,9 +60,6 @@ static char pl011_getc(uart_device_t *dev)
 	return (char)(*data_reg & 0xFF);
 }
 
-/**
- * @brief Bind the PL011 functions to the device struct.
- */
 void pl011_init(uart_device_t *dev, uintptr_t base)
 {
 	dev->mmio_base = base;

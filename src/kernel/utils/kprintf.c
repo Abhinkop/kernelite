@@ -14,14 +14,20 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+/** @brief Global serial console. */
 serial_t serial_console;
 
-void set_kprintf_console(serial_t con)
-{
-	serial_console.getc = con.getc;
-	serial_console.putc = con.putc;
-}
-
+/**
+ * @brief Convert an unsigned integer to a string using the given base.
+ *
+ * This helper writes the string representation of @p num into @p buf. The
+ * resulting string is always null-terminated.
+ *
+ * @param num  Number to convert.
+ * @param base Numerical base for conversion (e.g. 10 for decimal, 16 for hex).
+ * @param buf  Buffer to receive the converted string. Must be large enough to
+ *             hold the result.
+ */
 static void itoa(unsigned long num, int base, char *buf)
 {
 	char *ptr = buf;
@@ -50,10 +56,13 @@ static void itoa(unsigned long num, int base, char *buf)
 
 /**
  * @brief Variadic print function.
- * * Processes the format string and arguments, outputting characters via the
+ *
+ * Processes the format string and arguments, outputting characters via the
  * configured serial console.
- * * Supports: %%c, %%s, %%d, %%u, %%x, %%p.
- * * @param format Formatting string containing plain text and specifiers.
+ *
+ * Supports: %%c, %%s, %%d, %%u, %%x, %%p.
+ *
+ * @param format Formatting string containing plain text and specifiers.
  * @param args   An initialized va_list containing the arguments to be
  * formatted.
  * @return       The total number of characters successfully printed.
@@ -159,6 +168,12 @@ int vprintf(const char *format, va_list args)
 		}
 	}
 	return printed;
+}
+
+void set_kprintf_console(serial_t con)
+{
+	serial_console.getc = con.getc;
+	serial_console.putc = con.putc;
 }
 
 int kprintf(const char *format, ...)

@@ -18,7 +18,7 @@
 #include <stdbool.h>
 
 #include "utils/kprintf.h"
-#include "linker/symblos.h"
+#include "linker/symbols.h"
 
 /** @brief Start of the managed memory region */
 static uint8_t *mem_base = NULL;
@@ -61,26 +61,22 @@ bool page_init(void *mem_start, size_t mem_size)
 	// 2. Calculate bitmap requirements
 	size_t bitmap_size_bytes = (total_pages + 7) / 8;
 
-	uintptr_t bitmap_start_addr = (uintptr_t)&page_allocator_bit_map_start;
-	uintptr_t bitmap_end_addr = (uintptr_t)&page_allocator_bit_map_end;
-
-	size_t bitmap_size = bitmap_end_addr - bitmap_start_addr;
-
-	if (bitmap_size_bytes > bitmap_size) {
+	if (bitmap_size_bytes > BITMAP_SIZE) {
 		kprintf("PAGE ERROR: Bitmap size (%u bytes) exceeds available bitmap memory (%u bytes)\n",
-			bitmap_size_bytes, bitmap_size);
+			bitmap_size_bytes, BITMAP_SIZE);
 		return false;
 	}
 
 	kprintf("PAGE: Total pages: %u, Bitmap requires: %u bytes (%u pages)\n",
-		total_pages, bitmap_size_bytes);
+		total_pages, bitmap_size_bytes,
+		(bitmap_size_bytes + PAGE_SIZE - 1) / PAGE_SIZE);
 
+	uintptr_t bitmap_start_addr = (uintptr_t)&page_allocator_bit_map_start;
 	kprintf("PAGE: Bit map starts at %lx and ends at %lx\n",
-		bitmap_start_addr, bitmap_end_addr);
+		bitmap_start_addr, bitmap_start_addr + BITMAP_SIZE);
 
-	// The bitmap starts at the beginning of our
-	// memory allocated in the linker script
-	bitmap = page_allocator_bit_map_start;
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	bitmap = (uint8_t *)bitmap_start_addr;
 
 	// 3. Zero out the bitmap (all pages initially free)
 	for (size_t i = 0; i < bitmap_size_bytes; i++) {
@@ -88,6 +84,8 @@ bool page_init(void *mem_start, size_t mem_size)
 	}
 
 	kprintf("PAGE: Usable memory starts at 0x%lx\n", (uintptr_t)mem_base);
+	kprintf("PAGE: Usable memory ends at 0x%lx\n",
+		(uintptr_t)mem_base + mem_size - 1);
 	return true;
 }
 

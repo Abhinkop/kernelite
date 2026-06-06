@@ -1,3 +1,8 @@
+#include "linker/linker_defines.h"
+
+/* QEMU virt loads raw Image at RAM_BASE + 0x80000 = 0x40080000 */
+#define KERNEL_LOAD_ADDR 0x40080000
+
 ENTRY(primary_entry)
 
 PHDRS
@@ -9,8 +14,7 @@ PHDRS
 
 SECTIONS
 {
-    /* QEMU loads the kernel at 0x40000000 for aarch64 virt */
-    . = 0x40000000;
+    . = KERNEL_LOAD_ADDR;
 
     /* Image start symbol: address of the first byte of the linked image */
     image_start = .;
@@ -26,24 +30,28 @@ SECTIONS
         . = ALIGN(16);
         __bss_end = .;
     } :data_perm
-    .data.page_tables : {
-        page_allocator_bit_map_start = .;
-        . += 0x10000; /* Reserve 64 KiB for the page bitmap (supports up to 2 GiB of RAM at 4 KiB pages) */
-        page_allocator_bit_map_end = .;
-    }
     __bss_size = (__bss_end - __bss_start) >> 3;
+
+    /* Linux pattern: Group early structures and enforce strict page alignment */
+    .data.page_tables : ALIGN(LINKER_PAGE_SIZE) {
+        idmap_pg_dir_start = .;
+        . += ID_MAP_SIZE;
+
+        kernel_pg_dir_root_start = .;
+        . += LINKER_PAGE_SIZE;
+
+        page_allocator_bit_map_start = .;
+        . += LINKER_BITMAP_SIZE; /* 64 KiB for the page bitmap */
+    } :data_perm
 
     /* Define a small stack area (16KB) */
     .stack (NOLOAD) : ALIGN(16) {
         . += 0x4000;
         stack_top = .;
-    }
+    } :data_perm
 
     _end = .;
 
     /* Image end symbol: address one past the last byte of the linked image */
     image_end = .;
-
-    /* Provide an easily-retrievable image size symbol (in bytes). */
-    PROVIDE(image_size = image_end - image_start);
 }

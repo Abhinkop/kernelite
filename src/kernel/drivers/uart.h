@@ -1,3 +1,14 @@
+/**
+ * @file uart.h
+ * @brief PL011 UART hardware abstraction layer.
+ *
+ * Declares the device struct and initialisation function for the ARM PL011
+ * UART used as the kernel's early serial console.
+ *
+ * @author Abhin Parekadan Jose
+ * @date 2026-04-25
+ */
+
 #ifndef DRIVERS_UART_H
 #define DRIVERS_UART_H
 

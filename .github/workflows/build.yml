@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up Docker Build
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     # Builds your container and automatically handles GitHub Actions caching
     - name: Build and Cache Docker Image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: .devcontainer/Dockerfile
@@ -30,7 +30,7 @@ jobs:
 
     # Shares the compiled image archive with the next job stage
     - name: Upload Docker Image Archive
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: docker-image
         path: /tmp/kernel-dev-env.tar
@@ -41,12 +41,12 @@ jobs:
     needs: docker-build
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
 
     - name: Download Docker Image Archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: docker-image
         path: /tmp
@@ -57,13 +57,6 @@ jobs:
 
     - name: Run Clang-Tidy Linter
       run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace kernel-dev-env:latest make clang-tidy > tidy.errors 2>&1
-
-    - name: Upload Clang-Tidy Log Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: clang-tidy-log
-        path: tidy.errors
-        retention-days: 1
 
     - name: Verify Clang-Tidy Output
       run: |
@@ -79,10 +72,18 @@ jobs:
       run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace kernel-dev-env:latest make all
 
     - name: Upload Kernel Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: kernel-binary
         path: build/images/Image
+        retention-days: 1
+
+    - name: Upload Clang-Tidy Log Artifact
+      if: always() # Guarantees logs upload even if your tests crash or fail
+      uses: actions/upload-artifact@v7
+      with:
+        name: clang-tidy-log
+        path: tidy.errors
         retention-days: 1
 
   build-test-kernel:
@@ -90,12 +91,12 @@ jobs:
     needs: docker-build
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
 
     - name: Download Docker Image Archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: docker-image
         path: /tmp
@@ -106,13 +107,6 @@ jobs:
 
     - name: Run Clang-Tidy Linter (Test Build)
       run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace kernel-dev-env:latest make clang-tidy TEST=1 > tidy-test.errors 2>&1
-
-    - name: Upload Clang-Tidy Test Log Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: clang-tidy-test-log
-        path: tidy-test.errors
-        retention-days: 1
 
     - name: Verify Clang-Tidy Output (Test Build)
       run: |
@@ -128,14 +122,24 @@ jobs:
       run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace kernel-dev-env:latest make all TEST=1
 
     - name: Upload Kernel Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: kernel-test-binary
         path: build/images/Image
         retention-days: 1
 
+    - name: Upload Clang-Tidy Test Log Artifact
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: clang-tidy-test-log
+        path: tidy-test.errors
+        retention-days: 1
+
   execute-qemu:
     runs-on: ubuntu-latest
+    env:
+      TEST_RES_FILENAME: "test_results.log"
     needs: build-kernel
     steps:
     - name: Install Native QEMU
@@ -144,7 +148,7 @@ jobs:
         sudo apt-get install -y qemu-system-arm
 
     - name: Download Kernel Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: kernel-binary
         path: .
@@ -156,18 +160,25 @@ jobs:
           -nographic \
           -kernel ./Image \
           -no-reboot \
-          -semihosting > test_results.log
+          -semihosting > ${{ env.TEST_RES_FILENAME }} 2>&1
+
+    - name: Check and print log
+      run: |
+        test -f ${{ env.TEST_RES_FILENAME }} && \
+        cat ${{ env.TEST_RES_FILENAME }} || echo "Log file not found"
 
     - name: Upload Test Results Log
-      uses: actions/upload-artifact@v4
-      if: always() # Guarantees logs upload even if your tests crash or fail
+      uses: actions/upload-artifact@v7
+      if: always()
       with:
         name: qemu-test-log
-        path: test_results.log
+        path: ${{ env.TEST_RES_FILENAME }}
         retention-days: 1
 
   execute-qemu-tests:
     runs-on: ubuntu-latest
+    env:
+      TEST_RES_FILENAME: "test_results.log"
     needs: build-test-kernel
     steps:
     - name: Install Native QEMU
@@ -176,7 +187,7 @@ jobs:
         sudo apt-get install -y qemu-system-arm
 
     - name: Download Kernel Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: kernel-test-binary
         path: .
@@ -188,12 +199,17 @@ jobs:
           -nographic \
           -kernel ./Image \
           -no-reboot \
-          -semihosting > test_results.log
+          -semihosting > ${{ env.TEST_RES_FILENAME }} 2>&1
+
+    - name: Check and print log
+      run: |
+        test -f ${{ env.TEST_RES_FILENAME }} && \
+        cat ${{ env.TEST_RES_FILENAME }} || echo "Log file not found"
 
     - name: Upload Test Results Log
-      uses: actions/upload-artifact@v4
-      if: always() # Guarantees logs upload even if your tests crash or fail
+      uses: actions/upload-artifact@v7
+      if: always()
       with:
         name: qemu-test-log
-        path: test_results.log
+        path: ${{ env.TEST_RES_FILENAME }}
         retention-days: 1

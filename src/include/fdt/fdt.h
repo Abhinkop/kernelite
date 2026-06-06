@@ -49,7 +49,8 @@ bool check_fdt(const void *ptr);
 
 /**
  * @brief Scans the FDT for memory nodes and populates the provided map.
- * * This function searches the FDT for nodes with `device_type = "memory"`,
+ *
+ * This function searches the FDT for nodes with `device_type = "memory"`,
  * respects the root node's `#address-cells` and `#size-cells`, and
  * handles both 32-bit and 64-bit address formats.
  *

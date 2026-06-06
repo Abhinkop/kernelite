@@ -34,12 +34,10 @@ typedef struct test_suite {
 } test_suite_t;
 
 /** @brief Macro for asserting test conditions. */
-#define EXPECT(cond)                                         \
-	do {                                                 \
-		if (!(cond)) {                               \
-			kprintf("Test failed: %s\n", #cond); \
-			return false;                        \
-		}                                            \
-	} while (0)
+#define EXPECT(cond)                                 \
+	if (!(cond)) {                               \
+		kprintf("Test failed: %s\n", #cond); \
+		return false;                        \
+	}
 
 #endif /* TEST_TEST_H */

@@ -8,7 +8,15 @@ STRIP   = $(CROSS_COMPILE)strip
 
 IMG_NAME ?= Image
 
-INCLUDES = -Isrc/include
+# Project structure
+BUILD_DIR ?= build
+SRC_DIR   = src
+
+INCLUDES = -I$(SRC_DIR)/include
+
+LINKER_LDS_SCRIPT = $(SRC_DIR)/include/linker/linker.lds
+LINKER_LD_SCRIPT = $(LINKER_LDS_SCRIPT:%.lds=$(BUILD_DIR)/linker.ld)
+LINKER_PRE_PROCESSOR_FLAGS = -E -P -x c
 
 # Flags
 # -Wall -Wextra: Enable all warnings
@@ -19,14 +27,10 @@ INCLUDES = -Isrc/include
 # 						Todo: Find root cause of this and remove this flag if possible.
 CFLAGS  = -c -Wall -Wextra -ffreestanding -nostdlib -mgeneral-regs-only
 ASFLAGS = -c -x assembler-with-cpp
-LDFLAGS = -T scripts/linker.ld
+LDFLAGS = -T $(LINKER_LD_SCRIPT)
 
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -O3
-
-# Project structure
-BUILD_DIR ?= build
-SRC_DIR   = src
 
 # build type: debug or release (default: release)
 BUILD_TYPE = release
@@ -49,9 +53,11 @@ SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/error/error_strings.c \
 		  $(SRC_DIR)/kernel/exception_handling/handler.c \
 		  $(SRC_DIR)/kernel/fdt/fdt.c \
+		  $(SRC_DIR)/kernel/mmu/mmu.c \
 		  $(SRC_DIR)/kernel/page_table/page_table.c \
 		  $(SRC_DIR)/kernel/utils/kprintf.c \
-		  $(SRC_DIR)/kernel/utils/string.c
+		  $(SRC_DIR)/kernel/utils/string.c \
+		  $(SRC_DIR)/kernel/utils/utils.c
 
 SRCS_AS = $(SRC_DIR)/boot/boot.s \
 		  $(SRC_DIR)/kernel/exception_handling/vector.s
@@ -131,8 +137,15 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s
 	@echo "CC  $<"
 	$(VERBOSE_PREFIX)$(CC) $(ASFLAGS) $(INCLUDES) $< -o $@
 
+# Preprocess the linker script to resolve symbols and generate
+# the final linker script used for linking
+$(LINKER_LD_SCRIPT): $(LINKER_LDS_SCRIPT)
+	@mkdir -p $(dir $@)
+	@echo "Processing linker script..."
+	$(VERBOSE_PREFIX)$(CC) $(LINKER_PRE_PROCESSOR_FLAGS) $(INCLUDES) $< -o $@
+
 # Link the kernel
-$(TARGET_ELF): $(OBJS) $(LIBFDT_TARGETS)
+$(TARGET_ELF): $(OBJS) $(LIBFDT_TARGETS) $(LINKER_LD_SCRIPT)
 	@mkdir -p $(dir $@)
 	@echo "LD  $@"
 	$(VERBOSE_PREFIX)$(LD) $(LDFLAGS) $(OBJS) $(LIBFDT_TARGETS) -o $@
@@ -147,7 +160,7 @@ run: $(TARGET)
 	-cpu cortex-a57 -nographic -kernel $(TARGET) -no-reboot \
 	-semihosting
 
-format: $(SRCS_C) $(SRCS_H)
+format: $(SRCS_C) $(SRCS_H) $(TEST_SRCS)
 	@echo "Formatting source files..."
 	$(VERBOSE_PREFIX)clang-format -i $^
 	$(VERBOSE_PREFIX)$(MAKE) -C tools/register_decoder  BUILD_DIR=../../$(BUILD_DIR) format
@@ -177,23 +190,6 @@ $(BUILD_DIR)/tests/%.o: tests/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC  $<"
 	$(VERBOSE_PREFIX)$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-test-qemu: $(TARGET)
-	@echo "Running QEMU integration tests..."
-	$(VERBOSE_PREFIX)qemu-system-aarch64 \
-	-machine virt \
-	-cpu cortex-a57 \
-	-nographic \
-	-kernel $(TARGET) \
-	-no-reboot \
-	-semihosting \
-	; EXIT=$$?; \
-	if [ $$EXIT -eq 0 ]; then \
-		echo "Internal tests PASSED"; \
-	else \
-		echo "Internal tests FAILED"; \
-		exit $$EXIT; \
-	fi
 
 clean: clean-docs
 	@echo "Cleaning build directory..."

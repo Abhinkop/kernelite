@@ -166,11 +166,20 @@ SYM_CODE_START(primary_entry)
     // Save boot arguments (x0 .. x3) for main()
     mov	x21, x0				// x21=FDT
 
+    // 3. Zero out the BSS section
+    adr_l   x0, __bss_start
+    ldr     x1, =__bss_size
+clear_bss:
+    cbz     x1, save_boot_args          // If size is 0, skip
+    str     xzr, [x0], #8          // Store Zero Register (64-bit) and post-index
+    subs    x1, x1, #1
+    bne     clear_bss
+
+save_boot_args:
 	adr_l	x0, boot_args			// record the contents of
-	stp	x21, x1, [x0]			// x0 .. x3 at kernel entry
-	stp	x2, x3, [x0, #16]
+	str     x21,  [x0]			    // Store addess of fdt in boot args
     dmb	sy
-    add	x1, x0, #0x20			// 4 x 8 bytes
+    add	x1, x0, #0x8			    // 8 bytes
 	bl	dcache_inval_poc
 
     bl      setup_sctlr_el1
@@ -179,17 +188,8 @@ SYM_CODE_START(primary_entry)
     bl     install_vectors
 
     // 2. Set up Primary Stack
-    ldr     x0, =stack_top
+    adr_l   x0, stack_top
     mov     sp, x0
-
-    // 3. Zero out the BSS section
-    ldr     x0, =__bss_start
-    ldr     x1, =__bss_size
-clear_bss:
-    cbz     x1, jump_main          // If size is 0, skip
-    str     xzr, [x0], #8          // Store Zero Register (64-bit) and post-index
-    subs    x1, x1, #1
-    bne     clear_bss
 
 jump_main:
 
@@ -197,7 +197,7 @@ jump_main:
     bl      main                   // Enter C environment
 
 halt:
-    ldr     x1, =stack_top
+    adr_l   x1, stack_top
     mov     sp, x1
     bl       exit
 SYM_CODE_END(primary_entry)

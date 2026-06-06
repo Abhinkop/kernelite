@@ -14,7 +14,8 @@
 
 /**
  * @brief UART0 Data Register (MMIO).
- * * This pointer accesses the hardware's transmit/receive buffer.
+ *
+ * This pointer accesses the hardware's transmit/receive buffer.
  * It is marked 'volatile' to prevent the compiler from optimizing out
  * repeated writes to the same memory location, which are necessary
  * for hardware communication.
@@ -23,10 +24,12 @@ volatile unsigned int *const uart0_dr = (unsigned int *)0x09000000;
 
 /**
  * @brief Transmits a null-terminated string over UART0.
- * * This function performs a simple polling-based write. It does not
+ *
+ * This function performs a simple polling-based write. It does not
  * check for FIFO status (TX Full), assuming the baud rate/buffer is
  * sufficient for early boot strings.
- * * @param str A pointer to the null-terminated ASCII string to be printed.
+ *
+ * @param str A pointer to the null-terminated ASCII string to be printed.
  */
 void print_uart0(const char *str)
 {
@@ -39,7 +42,8 @@ void print_uart0(const char *str)
 
 /**
  * @brief Converts a 4-bit nibble to a hex character and prints it.
- * * @param digit The digit to print (0-15).
+ *
+ * @param digit The digit to print (0-15).
  * @note This function uses a compound literal to pass a temporary string
  * to the UART driver.
  */
@@ -58,9 +62,11 @@ void print_hex_digit(uint8_t digit)
 
 /**
  * @brief Prints a 64-bit unsigned integer in hexadecimal format.
- * * Iterates through the 64-bit value 4 bits at a time from most
+ *
+ *Iterates through the 64-bit value 4 bits at a time from most
  * significant bit to least significant bit.
- * * @param val The 64-bit value to be printed.
+ *
+ * @param val The 64-bit value to be printed.
  */
 void print_hex(uint64_t val)
 {
@@ -72,10 +78,12 @@ void print_hex(uint64_t val)
 
 /**
  * @brief Primary C-level panic entry point.
- * * This function is typically called by the assembly panic_print macro.
+ *
+ * This function is typically called by the assembly panic_print macro.
  * It outputs the numeric error code, resolves the human-readable
  * error string, and indicates system halt.
- * * @param code The numeric error code representing the failure type.
+ *
+ * @param code The numeric error code representing the failure type.
  * @see error_to_string
  */
 void panic_print_c(long code)
