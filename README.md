@@ -9,16 +9,22 @@
 
 ## 📂 Project Structure
 
-* **`docs/`**: Technical specifications, research notes, and architectural definitions.
-* **`scripts/`**: Build automation scripts and linker files (`linker.ld`) to define the kernel's memory layout.
-* **`src/boot/`**: The kernel entry point.
-    * *Note:* While x86 uses Multiboot/GRUB, for **aarch64**, this handles Exception Level (EL) setup and initial CPU handoff from the bootloader.
-* **`src/kernel/`**: The architecture-independent logic (the "Brain").
-    * **`cpu/`**: Logic for handling interrupts, exceptions, and the system tick.
-    * **`mm/`**: Memory Management—responsible for physical page allocation (bitmaps) and virtual memory (paging).
-    * **`sched/`**: The task scheduler and process management.
-* **`src/arch/`**: Hardware-specific implementations (Drivers, MMU setup, and CPU-specific registers).
-* **`src/include/`**: Global header files, mirroring the `src` directory structure for easy dependency management.
+* **`docs/`**: Technical specifications and Doxygen configuration.
+* **`src/boot/`**: Kernel entry point — EL setup and initial CPU handoff from the bootloader.
+* **`src/kernel/`**: Core kernel subsystems.
+    * **`allocator/`**: Physical page allocator.
+    * **`drivers/`**: Hardware drivers (UART).
+    * **`error/`**: Panic and error string handling.
+    * **`exception_handling/`**: AArch64 exception vector table and fault handler (ESR_EL1 decoding).
+    * **`exit/`**: Kernel exit/halt path.
+    * **`fdt/`**: Flattened Device Tree parser.
+    * **`mmu/`**: MMU setup — MAIR, TCR, SCTLR_EL1, `enable_mmu()`.
+    * **`page_table/`**: AArch64 page table descriptor construction and mapping.
+    * **`utils/`**: `kprintf`, string utilities.
+    * **`main.c`**: Kernel `kmain` entry.
+* **`src/include/`**: Public headers mirroring the `src/kernel/` layout, plus the linker script (`linker/linker.lds`).
+* **`tests/`**: Host-side unit tests for page table mapping and linker symbol layout.
+* **`tools/register_decoder/`**: Standalone utility for decoding AArch64 system register values (SCTLR_EL1).
 
 ## 🛠 Building & Running
 
