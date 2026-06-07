@@ -31,7 +31,7 @@ static size_t total_pages = 0;
 
 bool page_init(phy_addr mem_start, size_t mem_size)
 {
-	kprintf("PAGE: Initializing allocator at %p (size: %u bytes)\n",
+	kprintf("PAGE: Initializing allocator at 0x%lx (size: 0x%lx bytes)\n",
 		mem_start, mem_size);
 
 	// Align the starting address to a 4KB boundary
@@ -61,17 +61,17 @@ bool page_init(phy_addr mem_start, size_t mem_size)
 	size_t bitmap_size_bytes = (total_pages + 7) / 8;
 
 	if (bitmap_size_bytes > BITMAP_SIZE) {
-		kprintf("PAGE ERROR: Bitmap size (%u bytes) exceeds available bitmap memory (%u bytes)\n",
+		kprintf("PAGE ERROR: Bitmap size (0x%lx bytes) exceeds available bitmap memory (0x%x bytes)\n",
 			bitmap_size_bytes, BITMAP_SIZE);
 		return false;
 	}
 
-	kprintf("PAGE: Total pages: %u, Bitmap requires: %u bytes (%u pages)\n",
+	kprintf("PAGE: Total pages: 0x%lx, Bitmap requires: 0x%lx bytes (0x%lx pages)\n",
 		total_pages, bitmap_size_bytes,
 		(bitmap_size_bytes + PAGE_SIZE - 1) / PAGE_SIZE);
 
 	uintptr_t bitmap_start_addr = (uintptr_t)&page_allocator_bit_map_start;
-	kprintf("PAGE: Bit map starts at %lx and ends at %lx\n",
+	kprintf("PAGE: Bit map starts at 0x%lx and ends at 0x%lx\n",
 		bitmap_start_addr, bitmap_start_addr + BITMAP_SIZE);
 
 	// NOLINTNEXTLINE(*-int-to-ptr)
@@ -120,7 +120,7 @@ bool reserve_page(phy_addr start, size_t num_pages)
 	phy_addr mem_end = mem_start + (total_pages * PAGE_SIZE);
 
 	if (start_addr < mem_start || end_addr > mem_end) {
-		kprintf("PAGE ERROR: Attempted to reserve out-of-bounds range %p - %p\n",
+		kprintf("PAGE ERROR: Attempted to reserve out-of-bounds range 0x%lx - 0x%lx\n",
 			start, end_addr);
 		return false;
 	}
@@ -130,8 +130,8 @@ bool reserve_page(phy_addr start, size_t num_pages)
 		size_t page_index = start_index + i;
 		bitmap[page_index / 8] |= (1 << (page_index % 8));
 	}
-	kprintf("PAGE: Reserved %u pages at %p (index %u)\n", num_pages, start,
-		start_index);
+	kprintf("PAGE: Reserved 0x%lx pages at 0x%lx (index 0x%lx)\n",
+		num_pages, start, start_index);
 	return true;
 }
 
@@ -142,7 +142,7 @@ void *page_alloc(size_t num_pages)
 	}
 
 	if (num_pages > total_pages) {
-		kprintf("PAGE: Allocation failed. Request (%u) exceeds total capacity (%u)\n",
+		kprintf("PAGE: Allocation failed. Request (0x%lx) exceeds total capacity (0x%lx)\n",
 			num_pages, total_pages);
 		return NULL;
 	}
@@ -168,7 +168,7 @@ void *page_alloc(size_t num_pages)
 
 				void *ptr = (void *)(mem_base +
 						     (start_index * PAGE_SIZE));
-				kprintf("PAGE: Allocated %u pages at %p\n",
+				kprintf("PAGE: Allocated 0x%lx pages at %p\n",
 					num_pages, ptr);
 				return ptr;
 			}
@@ -177,7 +177,7 @@ void *page_alloc(size_t num_pages)
 		}
 	}
 
-	kprintf("PAGE: Allocation failed. No contiguous block of %u pages found.\n",
+	kprintf("PAGE: Allocation failed. No contiguous block of 0x%lx pages found.\n",
 		num_pages);
 	return NULL;
 }
@@ -202,12 +202,12 @@ void page_free(phy_addr start, size_t num_pages)
 
 	// Boundary check for the range
 	if (start_index + num_pages > total_pages) {
-		kprintf("PAGE WARNING: Free range out of bounds. Truncating %u to %u pages\n",
+		kprintf("PAGE WARNING: Free range out of bounds. Truncating 0x%lx to 0x%lx pages\n",
 			num_pages, total_pages - start_index);
 		num_pages = total_pages - start_index;
 	}
 
-	kprintf("PAGE: Freeing %u pages at 0x%lx\n", num_pages, start);
+	kprintf("PAGE: Freeing 0x%lx pages at 0x%lx\n", num_pages, start);
 
 	// Mark pages as free
 	for (size_t i = start_index; i < start_index + num_pages; i++) {
@@ -223,7 +223,7 @@ void page_dump_status(void)
 	}
 
 	kprintf("--- Physical Page Dump ---\n");
-	kprintf("Managed Range: 0x%lx - 0x%lx (%u pages)\n",
+	kprintf("Managed Range: 0x%lx - 0x%lx (0x%lx pages)\n",
 		(uintptr_t)mem_base,
 		(uintptr_t)mem_base + (total_pages * PAGE_SIZE), total_pages);
 
@@ -247,7 +247,7 @@ void page_dump_status(void)
 				(uintptr_t)mem_base + (i * PAGE_SIZE);
 			size_t block_size_pages = i - start_idx;
 
-			kprintf("  [0x%lx - 0x%lx] %s (%u pages)\n",
+			kprintf("  [0x%lx - 0x%lx] %s (0x%lx pages)\n",
 				block_start,
 				block_end - 1, // Inclusive range display
 				current_status ? "USED" : "FREE",

@@ -185,7 +185,7 @@ int main(const uint64_t *boot_args_ptr)
 		return 1;
 	}
 
-	kprintf("fdt adrr = 0x%lx size = 0x%lx\n", (virt_addr)fdt_addr,
+	kprintf("fdt adrr = 0x%lx size = 0x%x\n", (virt_addr)fdt_addr,
 		fdt_totalsize(fdt_addr));
 
 	Memory_map_t mmap;

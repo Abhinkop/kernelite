@@ -33,7 +33,7 @@ bool reserve_kernel_img_pages(void)
 	size_t num_pages = (img_size + PAGE_SIZE - 1) / PAGE_SIZE;
 	void *img_start = (void *)&image_start;
 
-	kprintf("Reserving kernel image pages: start=%p, size=0x%lx bytes, pages=%u\n",
+	kprintf("Reserving kernel image pages: start=%p, size=0x%lx bytes, pages=0x%lx\n",
 		img_start, img_size, num_pages);
 
 	if (!reserve_page(va_to_pa((virt_addr)img_start), num_pages)) {
@@ -58,7 +58,7 @@ bool reserve_fdt_pages(const void *fdt_addr)
 	size_t fdt_size = fdt_totalsize(fdt_addr);
 	size_t num_pages = (fdt_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-	kprintf("Reserving FDT pages: start=%p, size=0x%lx bytes, pages=%u\n",
+	kprintf("Reserving FDT pages: start=%p, size=0x%lx bytes, pages=0x%lx\n",
 		fdt_addr, fdt_size, num_pages);
 
 	if (!reserve_page(va_to_pa((virt_addr)fdt_addr), num_pages)) {
