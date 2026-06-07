@@ -19,13 +19,29 @@ LINKER_LD_SCRIPT = $(LINKER_LDS_SCRIPT:%.lds=$(BUILD_DIR)/linker.ld)
 LINKER_PRE_PROCESSOR_FLAGS = -E -P -x c
 
 # Flags
-# -Wall -Wextra: Enable all warnings
-# -ffreestanding: No standard library environment
-# -nostdlib: Don't link against system libraries
-# -mgeneral-regs-only: Restrict to general-purpose registers (AArch64) needed for variadic functions
-#						Without this, the printf implementation in kprintf.c fails.
-# 						Todo: Find root cause of this and remove this flag if possible.
-CFLAGS  = -c -Wall -Wextra -ffreestanding -nostdlib -mgeneral-regs-only
+# -Wall -Wextra: Enable common and extra warnings
+# -ffreestanding: No hosted standard-library environment
+# -nostdlib: Don't link system startup files or libc
+# -mgeneral-regs-only: Use only general-purpose registers; no FP/SIMD.
+#                      FP/SIMD is not enabled at EL1 (CPACR_EL1.FPEN), and the
+#                      AArch64 variadic ABI otherwise spills v0-v7 in the
+#                      prologue -- those stores trap when the FPU is off, which
+#                      is why kprintf's printf fails without this. Standard for
+#                      a kernel that doesn't save/restore FP/SIMD state.
+# -fno-pic / -fno-pie: Generate position-dependent code. Symbol references are
+#                      then direct PC-relative adrp/add instead of going through
+#                      the GOT (whose slots hold absolute, low, link-time
+#                      addresses). After the switch to the high half, PC-relative
+#                      refs resolve to high VAs automatically; GOT indirection
+#                      would keep them low and break va_to_pa.
+# -mcmodel=small: AArch64 default, pinned defensively. small uses adrp+add
+#                 (PC-relative, ~4GB reach), which resolves correctly at any high
+#                 base because adrp encodes the relative page distance, not the
+#                 absolute address. Avoids -mcmodel=large (absolute movz/movk
+#                 immediates = low link-time address, breaks the high-half
+#                 switch) and -mcmodel=tiny (1MB code+data cap).
+CFLAGS  = -c -Wall -Wextra -ffreestanding -nostdlib -mgeneral-regs-only \
+		  -fno-pic -fno-pie -mcmodel=small
 ASFLAGS = -c -x assembler-with-cpp
 LDFLAGS = -T $(LINKER_LD_SCRIPT)
 
