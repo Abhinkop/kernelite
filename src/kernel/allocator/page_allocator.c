@@ -29,22 +29,21 @@ static uint8_t *bitmap = NULL;
 /** @brief Total number of 4KB pages in the pool */
 static size_t total_pages = 0;
 
-bool page_init(void *mem_start, size_t mem_size)
+bool page_init(phy_addr mem_start, size_t mem_size)
 {
 	kprintf("PAGE: Initializing allocator at %p (size: %u bytes)\n",
 		mem_start, mem_size);
 
 	// Align the starting address to a 4KB boundary
-	uintptr_t start_addr = (uintptr_t)mem_start;
-	uintptr_t aligned_start = (start_addr + (PAGE_SIZE - 1)) &
+	uintptr_t aligned_start = (mem_start + (PAGE_SIZE - 1)) &
 				  ~(PAGE_SIZE - 1);
 
-	if (aligned_start != start_addr) {
+	if (aligned_start != mem_start) {
 		kprintf("PAGE: Aligned start to 0x%lx (offset: %lu bytes)\n",
-			aligned_start, aligned_start - start_addr);
+			aligned_start, aligned_start - mem_start);
 	}
 
-	size_t alignment_shift = aligned_start - start_addr;
+	size_t alignment_shift = aligned_start - mem_start;
 	if (alignment_shift >= mem_size) {
 		kprintf("PAGE ERROR: Alignment shift (%lx bytes) exceeds total memory size (%lx bytes)\n",
 			alignment_shift, mem_size);
@@ -108,30 +107,30 @@ void fixup_page_allocator(void)
 	bitmap = (uint8_t *)pa_to_va((phy_addr)bitmap);
 }
 
-bool reserve_page(void *ptr, size_t num_pages)
+bool reserve_page(phy_addr start, size_t num_pages)
 {
-	if (!ptr || !mem_base || total_pages == 0 || !bitmap) {
+	if (!mem_base || total_pages == 0 || !bitmap) {
 		return false;
 	}
 
-	uintptr_t start_addr = (uintptr_t)ptr;
-	uintptr_t end_addr = start_addr + (num_pages * PAGE_SIZE);
+	phy_addr start_addr = start;
+	phy_addr end_addr = start_addr + (num_pages * PAGE_SIZE);
 
-	uintptr_t mem_start = (uintptr_t)mem_base;
-	uintptr_t mem_end = mem_start + (total_pages * PAGE_SIZE);
+	phy_addr mem_start = va_to_pa((virt_addr)mem_base);
+	phy_addr mem_end = mem_start + (total_pages * PAGE_SIZE);
 
 	if (start_addr < mem_start || end_addr > mem_end) {
 		kprintf("PAGE ERROR: Attempted to reserve out-of-bounds range %p - %p\n",
-			ptr, end_addr);
+			start, end_addr);
 		return false;
 	}
 
-	size_t start_index = ((uint8_t *)ptr - mem_base) / PAGE_SIZE;
+	size_t start_index = (start - mem_start) / PAGE_SIZE;
 	for (size_t i = 0; i < num_pages; i++) {
 		size_t page_index = start_index + i;
 		bitmap[page_index / 8] |= (1 << (page_index % 8));
 	}
-	kprintf("PAGE: Reserved %u pages at %p (index %u)\n", num_pages, ptr,
+	kprintf("PAGE: Reserved %u pages at %p (index %u)\n", num_pages, start,
 		start_index);
 	return true;
 }

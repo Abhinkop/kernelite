@@ -29,11 +29,12 @@
  * Sets up the internal tracking structures (e.g., bitmap or free list) to
  * manage the physical memory starting at @p mem_start.
  *
- * @param mem_start Pointer to the beginning of the manageable physical memory.
+ * @param mem_start The physical address of the beginning of the manageable
+ * physical memory.
  * @param mem_size  Total size of the memory region in bytes.
  * @return bool True if initialization was successful, false otherwise.
  */
-bool page_init(void *mem_start, size_t mem_size);
+bool page_init(phy_addr mem_start, size_t mem_size);
 
 /** @brief Fixes up the page allocator after the switch to high VAs. */
 void fixup_page_allocator(void);
@@ -43,11 +44,11 @@ void fixup_page_allocator(void);
  *
  * Marks the specified range of pages as reserved.
  *
- * @param ptr       Pointer to the start of the memory block to reserve.
+ * @param start     The physical address of the first page to reserve.
  * @param num_pages The number of contiguous pages to reserve.
  * @return bool True if the pages were successfully reserved, false otherwise.
  */
-bool reserve_page(void *ptr, size_t num_pages);
+bool reserve_page(phy_addr start, size_t num_pages);
 
 /**
  * @brief Allocates a contiguous block of physical pages.

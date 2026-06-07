@@ -673,7 +673,8 @@ bool setup_kernel_id_map(void)
 	// Initialize the page tracking block allocated for the ID map
 	// structures
 	bool page_init_result =
-		page_init(idmap_pg_dir_start_addr, (size_t)ID_MAP_SIZE);
+		page_init(va_to_pa((virt_addr)idmap_pg_dir_start_addr),
+			  (size_t)ID_MAP_SIZE);
 	if (!page_init_result) {
 		kprintf("Error: Failed while setting up initial static page idmap pool\n");
 		return false;

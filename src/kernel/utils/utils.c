@@ -36,7 +36,7 @@ bool reserve_kernel_img_pages(void)
 	kprintf("Reserving kernel image pages: start=%p, size=0x%lx bytes, pages=%u\n",
 		img_start, img_size, num_pages);
 
-	if (!reserve_page(img_start, num_pages)) {
+	if (!reserve_page(va_to_pa((virt_addr)img_start), num_pages)) {
 		kprintf("Failed to reserve kernel image pages. Halting.\n");
 		return false;
 	}
@@ -61,7 +61,7 @@ bool reserve_fdt_pages(const void *fdt_addr)
 	kprintf("Reserving FDT pages: start=%p, size=0x%lx bytes, pages=%u\n",
 		fdt_addr, fdt_size, num_pages);
 
-	if (!reserve_page((void *)fdt_addr, num_pages)) {
+	if (!reserve_page(va_to_pa((virt_addr)fdt_addr), num_pages)) {
 		kprintf("Failed to reserve FDT pages. Halting.\n");
 		return false;
 	}
@@ -89,7 +89,7 @@ bool setup_page_allocator(const void *fdt_addr)
 
 	// NOLINTBEGIN(*-int-to-ptr)
 	bool page_init_result =
-		page_init((void *)mmap.regions[0].base, mmap.regions[0].size);
+		page_init(mmap.regions[0].base, mmap.regions[0].size);
 	// NOLINTEND(*-int-to-ptr)
 
 	if (!page_init_result) {

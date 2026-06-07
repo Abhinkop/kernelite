@@ -12,6 +12,8 @@
 #ifndef FDT_FDT_H
 #define FDT_FDT_H
 
+#include "mem_layout/mem_layout.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -23,7 +25,7 @@
  */
 typedef struct {
 	/** @brief Start physical address of the region. */
-	uint64_t base;
+	phy_addr base;
 
 	/** @brief Size of the region in bytes. */
 	uint64_t size;
