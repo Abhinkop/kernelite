@@ -35,6 +35,6 @@ bool reserve_kernel_img_pages(void);
  * @param fdt_addr Pointer to the FDT address.
  * @return bool True if initialization was successful, false otherwise.
  */
-bool setup_global_allocator(const void *fdt_addr);
+bool setup_page_allocator(const void *fdt_addr);
 
 #endif /* UTILS_UTILS_H */

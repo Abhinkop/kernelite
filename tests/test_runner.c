@@ -87,7 +87,7 @@ void run_internal_tests(const void *fdt_addr)
 	for (size_t i = 0; i < num_suites; i++) {
 		kprintf("Running test suite: %s\n", test_suite[i].suite_name);
 		for (size_t j = 0; j < test_suite[i].num_tests; j++) {
-			if (!setup_global_allocator(fdt_addr)) {
+			if (!setup_page_allocator(fdt_addr)) {
 				kprintf("Failed to set up global allocator. Halting tests.\n");
 				qemu_exit(1);
 			}

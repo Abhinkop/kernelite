@@ -16,6 +16,17 @@
 #include "linker/symbols.h"
 #include "fdt/fdt.h"
 
+#include <libfdt.h>
+
+/**
+ * @brief Reserve pages occupied by the kernel image.
+ *
+ * This function calculates the number of pages occupied by the kernel
+ * image based on the linker-provided symbols and reserves those pages in
+ * the page allocator to prevent them from being allocated for other purposes.
+ *
+ * @return bool True if reservation was successful, false otherwise.
+ */
 bool reserve_kernel_img_pages(void)
 {
 	size_t img_size = get_image_size();
@@ -32,7 +43,32 @@ bool reserve_kernel_img_pages(void)
 	return true;
 }
 
-bool setup_global_allocator(const void *fdt_addr)
+/**
+ * @brief Reserve pages occupied by the Device Tree Blob (FDT).
+ *
+ * This function calculates the number of pages occupied by the FDT
+ * and reserves those pages in the page allocator to prevent them from being
+ * allocated for other purposes.
+ *
+ * @param fdt_addr Pointer to the FDT address.
+ * @return bool True if reservation was successful, false otherwise.
+ */
+bool reserve_fdt_pages(const void *fdt_addr)
+{
+	size_t fdt_size = fdt_totalsize(fdt_addr);
+	size_t num_pages = (fdt_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+	kprintf("Reserving FDT pages: start=%p, size=0x%lx bytes, pages=%u\n",
+		fdt_addr, fdt_size, num_pages);
+
+	if (!reserve_page((void *)fdt_addr, num_pages)) {
+		kprintf("Failed to reserve FDT pages. Halting.\n");
+		return false;
+	}
+	return true;
+}
+
+bool setup_page_allocator(const void *fdt_addr)
 {
 	if (!check_fdt(fdt_addr)) {
 		kprintf("FDT validation failed. Halting.\n");
@@ -63,6 +99,11 @@ bool setup_global_allocator(const void *fdt_addr)
 
 	if (!reserve_kernel_img_pages()) {
 		kprintf("Error while reserving kernel binary pages\n");
+		return false;
+	}
+
+	if (!reserve_fdt_pages(fdt_addr)) {
+		kprintf("Error while reserving FDT pages\n");
 		return false;
 	}
 
