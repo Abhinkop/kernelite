@@ -89,6 +89,25 @@ bool page_init(void *mem_start, size_t mem_size)
 	return true;
 }
 
+void fixup_page_allocator(void)
+{
+	// After the initial setup, we need to convert the physical addresses to
+	// virtual addresses for the bitmap and the managed memory region,  as
+	// the kernel operates in the high virtual address space. This function
+	// should be called after the identity map is set up and the MMU is
+	// enabled and the switch to high VA is done in the main function, to
+	// ensure the page allocator can continue functioning correctly with the
+	// new virtual addresses. The bitmap and mem_base should be updated to
+	// point to their corresponding virtual addresses after the switch,
+	// which are expected to be at a fixed offset from their physical
+	// addresses defined by the kernel base.
+
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	mem_base = (uint8_t *)pa_to_va((phy_addr)mem_base);
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	bitmap = (uint8_t *)pa_to_va((phy_addr)bitmap);
+}
+
 bool reserve_page(void *ptr, size_t num_pages)
 {
 	if (!ptr || !mem_base || total_pages == 0 || !bitmap) {
@@ -164,20 +183,23 @@ void *page_alloc(size_t num_pages)
 	return NULL;
 }
 
-void page_free(void *ptr, size_t num_pages)
+void page_free(phy_addr start, size_t num_pages)
 {
-	if (!ptr)
+	if (!mem_base || total_pages == 0 || !bitmap) {
 		return;
+	}
 
-	if (ptr < (void *)mem_base ||
-	    ptr >= (void *)(mem_base + (total_pages * PAGE_SIZE))) {
-		kprintf("PAGE ERROR: Attempted to free out-of-bounds pointer %p\n",
-			ptr);
+	phy_addr mem_start = va_to_pa((virt_addr)mem_base);
+	phy_addr mem_end =
+		va_to_pa((virt_addr)(mem_base + (total_pages * PAGE_SIZE)));
+	if (start < mem_start || start >= mem_end) {
+		kprintf("PAGE ERROR: Attempted to free out-of-bounds pointer 0x%lx\n",
+			start);
 		return;
 	}
 
 	// Calculate start index
-	size_t start_index = ((uint8_t *)ptr - mem_base) / PAGE_SIZE;
+	size_t start_index = (start - mem_start) / PAGE_SIZE;
 
 	// Boundary check for the range
 	if (start_index + num_pages > total_pages) {
@@ -186,7 +208,7 @@ void page_free(void *ptr, size_t num_pages)
 		num_pages = total_pages - start_index;
 	}
 
-	kprintf("PAGE: Freeing %u pages at %p\n", num_pages, ptr);
+	kprintf("PAGE: Freeing %u pages at 0x%lx\n", num_pages, start);
 
 	// Mark pages as free
 	for (size_t i = start_index; i < start_index + num_pages; i++) {

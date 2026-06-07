@@ -99,6 +99,7 @@ void print_memory_map(const Memory_map_t *mmap)
 static void __attribute__((noinline)) high_half_main(void)
 {
 	update_kernel_base_va();
+	fixup_page_allocator();
 
 	// Re-init the UART and console with high VAs (pointers formed at high
 	// PC).
@@ -128,7 +129,15 @@ static void __attribute__((noinline)) high_half_main(void)
 		     :
 		     : "memory");
 
-	kprintf("Hello World!\n");
+	kprintf("Freeing id map page table pages...\n");
+	virt_addr id_map_root = (virt_addr)get_id_map_root();
+	page_free(va_to_pa(id_map_root), ID_MAP_NUM_PAGES);
+
+	kprintf("Hello World from high-half!\n");
+
+	virt_addr current_pc = 0;
+	asm volatile("adr %0, ." : "=r"(current_pc));
+	kprintf("Current PC: 0x%lx\n", current_pc);
 
 	exit(0);
 }
@@ -213,7 +222,6 @@ int main(const uint64_t *boot_args_ptr)
 		kprintf("Error while mapping uart\n");
 		return 1;
 	}
-
 
 	if (!enable_mmu(get_id_map_root(), get_kernel_map_root())) {
 		kprintf("Error while setting up mmu\n");

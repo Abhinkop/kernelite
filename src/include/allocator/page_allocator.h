@@ -14,6 +14,7 @@
 
 #include "page_table/page_table.h"
 #include "linker/linker_defines.h"
+#include "mem_layout/mem_layout.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -33,6 +34,9 @@
  * @return bool True if initialization was successful, false otherwise.
  */
 bool page_init(void *mem_start, size_t mem_size);
+
+/** @brief Fixes up the page allocator after the switch to high VAs. */
+void fixup_page_allocator(void);
 
 /**
  * @brief Reserves a specific number of contiguous pages.
@@ -61,11 +65,10 @@ void *page_alloc(size_t num_pages);
  *
  * Marks the specified range of pages as available for future allocations.
  *
- * @param ptr       Pointer to the start of the memory block to free
- * (must be page-aligned).
+ * @param start     The physical address of the first page to free.
  * @param num_pages The number of contiguous pages to release.
  */
-void page_free(void *ptr, size_t num_pages);
+void page_free(phy_addr start, size_t num_pages);
 
 /**
  * @brief Scans the bitmap and prints the status of all memory regions.
