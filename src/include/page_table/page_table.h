@@ -13,6 +13,8 @@
 #define PAGE_TABLE_PAGE_TABLE_H
 
 #include "linker/linker_defines.h"
+#include "fdt/fdt.h"
+#include "mem_layout/mem_layout.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -27,19 +29,6 @@
  * from  table D4-21 in the Armv8-A architecture reference manual.
  */
 #define PTRS_PER_TABLE 512
-
-/**
- * @brief Base virtual address for the kernel.
- * @note The actual base is 0xFFFF000000000000UL,
- *       but we use 0 untill we map kernel to high memory.
- */
-#define KERNEL_BASE_VA 0x0
-
-/** @brief Type for representing physical addresses. */
-typedef uint64_t phy_addr;
-
-/** @brief Type for representing virtual addresses. */
-typedef uint64_t virt_addr;
 
 /**
  * @brief Software representation of architectural page mapping privileges.
@@ -423,26 +412,6 @@ typedef struct {
 } page_table_t;
 
 /**
- * @brief Convert a virtual address to a physical address.
- * @param v_addr The virtual address to convert.
- * @return The corresponding physical address.
- */
-static inline phy_addr va_to_pa(virt_addr v_addr)
-{
-	return (phy_addr)v_addr - KERNEL_BASE_VA;
-}
-
-/**
- * @brief Convert a physical address to a virtual address.
- * @param p_addr The physical address to convert.
- * @return The corresponding virtual address.
- */
-static inline virt_addr pa_to_va(phy_addr p_addr)
-{
-	return (virt_addr)KERNEL_BASE_VA + p_addr;
-}
-
-/**
  * @brief Initialize a page table.
  * @param table Pointer to the page table to initialize.
  */
@@ -480,7 +449,7 @@ bool map_page(page_table_t *root, virt_addr v_addr, phy_addr phy_addr,
 void dump_memory_map(page_table_t *root);
 
 /**
- * @brief Sets up the intial identity kernel map
+ * @brief Sets up the initial identity kernel map
  * @return true on success, false on failure (e.g., if allocation fails).
  */
 bool setup_kernel_id_map();
