@@ -59,4 +59,13 @@ static inline page_table_t *get_id_map_root()
 	return (page_table_t *)&idmap_pg_dir_start;
 }
 
+/**
+ * @brief Return the root of the kernel map
+ * @return the pointer to the root of the kernel map.
+ */
+static inline page_table_t *get_kernel_map_root()
+{
+	return (page_table_t *)&kernel_pg_dir_root_start;
+}
+
 #endif // LINKER_SYMBOLS_H

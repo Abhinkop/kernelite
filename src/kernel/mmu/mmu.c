@@ -11,23 +11,14 @@
 #include "mmu/mmu.h"
 
 #include "utils/kprintf.h"
+#include "mem_layout/mem_layout.h"
+#include "asm/asm_helper.h"
+
 #include <stdint.h>
 
-/** Read a system register */
-#define READ_SYS_REG(reg, val)                             \
-	do {                                               \
-		asm volatile("mrs %0, " #reg : "=r"(val)); \
-	} while (0)
-
-/** Write to a system register */
-#define WRITE_SYS_REG(reg, val)                                \
-	do {                                                   \
-		asm volatile("msr " #reg ", %0" : : "r"(val)); \
-	} while (0)
-
-bool enable_mmu(page_table_t *root)
+bool enable_mmu(page_table_t *id_map_root, page_table_t *kernel_map_root)
 {
-	if (!root) {
+	if (!id_map_root || !kernel_map_root) {
 		return false;
 	}
 
@@ -54,6 +45,7 @@ bool enable_mmu(page_table_t *root)
 	tcr_reg_t tcr;
 	tcr.value = 0;
 
+	// TTBR0 (low VA, identity map)
 	// T0SZ: 48-bit VA space
 	tcr.t0sz = (uint64_t)(64 - 48);
 	// IRGN0: Inner Write-Back Cacheable
@@ -64,17 +56,36 @@ bool enable_mmu(page_table_t *root)
 	tcr.sh0 = TCR_SH_INNER_SHAREABLE;
 	// TG0: 4Kb
 	tcr.tg0 = TCR_TG0_4KB;
+
+	// TTBR1 (high VA, kernel map) — add these
+	// T1SZ: 48-bit VA space
+	tcr.t1sz = (uint64_t)(64 - 48);
+	// IRGN1: Inner Write-Back Cacheable
+	tcr.irgn1 = TCR_CACHE_WB_RA_NWA;
+	// ORGN1: Outer Write-Back Cacheable
+	tcr.orgn1 = TCR_CACHE_WB_RA_NWA;
+	// SH1: Inner Shareable boundary
+	tcr.sh1 = TCR_SH_INNER_SHAREABLE;
+	// TG1: 4Kb
+	tcr.tg1 = TCR_TG1_4KB;
+
 	// IPS: 40-bit PA limits
 	tcr.ips = TCR_IPS_40BIT;
-	// EPD1: Disable TTBR1 walking paths
-	tcr.epd1 = 1;
+	// EPD1: Enable TTBR1 walking paths
+	tcr.epd1 = 0;
 
 	WRITE_SYS_REG(tcr_el1, tcr.value);
 	asm volatile("isb");
 
 	// Set ttbr0
-	phy_addr root_pa = va_to_pa((virt_addr)root);
+	phy_addr root_pa = va_to_pa((virt_addr)id_map_root);
 	WRITE_SYS_REG(ttbr0_el1, root_pa);
+
+	// Set ttbr1
+	root_pa = va_to_pa((virt_addr)kernel_map_root);
+	WRITE_SYS_REG(ttbr1_el1, root_pa);
+
+	// Ensure the TTBR writes are visible before enabling the MMU
 	asm volatile("isb");
 
 	// Fetch and configure the System Control Register (SCTLR_EL1)

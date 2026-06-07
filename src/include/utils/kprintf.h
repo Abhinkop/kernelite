@@ -50,6 +50,6 @@ void set_kprintf_console(serial_t console);
  * string.
  * @return       The total number of characters successfully printed.
  */
-int kprintf(const char *format, ...);
+int kprintf(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 #endif // UTILS_KPRINTF_H

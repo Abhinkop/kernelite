@@ -16,17 +16,6 @@
 #include <stdbool.h>
 
 /**
- * @brief Reserve pages occupied by the kernel image.
- *
- * This function calculates the number of pages occupied by the kernel
- * image based on the linker-provided symbols and reserves those pages in
- * the page allocator to prevent them from being allocated for other purposes.
- *
- * @return bool True if reservation was successful, false otherwise.
- */
-bool reserve_kernel_img_pages(void);
-
-/**
  * @brief Set up the global page allocator.
  *
  * This function initializes the global page allocator based on the memory map
@@ -35,6 +24,6 @@ bool reserve_kernel_img_pages(void);
  * @param fdt_addr Pointer to the FDT address.
  * @return bool True if initialization was successful, false otherwise.
  */
-bool setup_global_allocator(const void *fdt_addr);
+bool setup_page_allocator(const void *fdt_addr);
 
 #endif /* UTILS_UTILS_H */
