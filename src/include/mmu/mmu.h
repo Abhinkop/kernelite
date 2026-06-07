@@ -637,15 +637,18 @@ _Static_assert(sizeof(sctlr_el1_t) == 8,
  *     (slot 0 = Device-nGnRnE, slot 1 = Normal WB-RWA Cacheable).
  *  2. Configures TCR_EL1 for a 48-bit VA space (T0SZ=16), 4 KB granule,
  *     inner/outer write-back cacheable table walks, inner-shareable domain,
- *     40-bit IPS, and EPD1=1 to disable TTBR1 walks.
- *  3. Writes the physical address of @p root into TTBR0_EL1.
- *  4. Enables the MMU (M), D-cache (C), and I-cache (I) in SCTLR_EL1
+ *     and 40-bit IPS
+ *  3. Writes the physical address of @p id_map_root into TTBR0_EL1.
+ *  4. Writes the physical address of @p kernel_map_root into TTBR1_EL1.
+ *  5. Enables the MMU (M), D-cache (C), and I-cache (I) in SCTLR_EL1
  *
- * @param root  Pointer to the root (L0) page table whose physical address
- *              is loaded into TTBR0_EL1.  Must not be NULL.
+ * @param id_map_root  Pointer to the id_map_root (L0) page table whose physical
+ * address is loaded into TTBR0_EL1.  Must not be NULL.
+ * @param kernel_map_root  Pointer to the kernel_map_root (L1) page table whose
+ * physical address is loaded into TTBR1_EL1.  Must not be NULL.
  * @return true   MMU enabled successfully.
- * @return false  @p root was NULL.
+ * @return false  @p id_map_root was NULL.
  */
-bool enable_mmu(page_table_t *root);
+bool enable_mmu(page_table_t *id_map_root, page_table_t *kernel_map_root);
 
 #endif /* MMU_MMU_H */

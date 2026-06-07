@@ -42,6 +42,9 @@ extern void run_internal_tests(const void *fdt_addr);
 
 #endif /* RUN_TESTS */
 
+/** @brief Switch to high virtual addresses. */
+extern void switch_to_high_va(void);
+
 /** Global UART0 device instance */
 static uart_device_t uart0;
 
@@ -83,6 +86,51 @@ void print_memory_map(const Memory_map_t *mmap)
 		kprintf("  Region %d: Base = 0x%lx, Size = 0x%lx bytes\n", i,
 			mmap->regions[i].base, mmap->regions[i].size);
 	}
+}
+
+/**
+ * @brief High-half kernel entry, executed AFTER the switch to high VAs.
+ *
+ * Must be a separate, non-inlined function so that all PC-relative address
+ * materialisation (e.g. &uart0_putchar) happens while the PC is already in the
+ * high VA range. It must never return into the low-VA boot/exit path once
+ * TTBR0 is disabled.
+ */
+static void __attribute__((noinline)) high_half_main(void)
+{
+	update_kernel_base_va();
+
+	// Re-init the UART and console with high VAs (pointers formed at high
+	// PC).
+	pl011_init(&uart0, pa_to_va(0x09000000));
+	set_kprintf_console((serial_t){ .putc = uart0_putchar, .getc = NULL });
+
+	// Re-init the vector base to the high address before we drop the low
+	// map.
+	extern char vector_table;
+	uintptr_t high_vbar = (phy_addr)&vector_table; // No need to do pa_to_va
+						       // here since the vector
+						       // table address is
+						       // calculated by using
+						       // the pc.
+	WRITE_SYS_REG(vbar_el1, high_vbar);
+
+	// Now it is safe to disable TTBR0 (the low identity map) hopefully!.
+	tcr_reg_t tcr;
+	READ_SYS_REG(tcr_el1, tcr.value);
+	tcr.epd0 = 1; // Set EPD0 to disable TTBR0
+	WRITE_SYS_REG(tcr_el1, tcr.value);
+	WRITE_SYS_REG(ttbr0_el1, 0UL); // Clear TTBR0
+	asm volatile("tlbi vmalle1is\n\t"
+		     "dsb sy\n\t"
+		     "isb\n\t"
+		     :
+		     :
+		     : "memory");
+
+	kprintf("Hello World!\n");
+
+	exit(0);
 }
 
 /**
@@ -167,12 +215,15 @@ int main(const uint64_t *boot_args_ptr)
 	}
 
 
-	if (!enable_mmu(get_id_map_root())) {
+	if (!enable_mmu(get_id_map_root(), get_kernel_map_root())) {
 		kprintf("Error while setting up mmu\n");
 		return 1;
 	}
+	switch_to_high_va();
 
-	kprintf("Hello World!\n");
+	// Running at high VAs now. Hand off to a fresh function so all
+	// PC-relative addresses are formed at high PC, then never come back.
+	high_half_main();
 
-	return 0; // returns calls exit with code 0.
+	__builtin_unreachable();
 }

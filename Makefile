@@ -61,7 +61,8 @@ SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/utils/utils.c
 
 SRCS_AS = $(SRC_DIR)/boot/boot.s \
-		  $(SRC_DIR)/kernel/exception_handling/vector.s
+		  $(SRC_DIR)/kernel/exception_handling/vector.s \
+		  $(SRC_DIR)/kernel/mmu/trampoline.s
 
 # only used for formatting and linting
 SRCS_H  = $(shell find $(SRC_DIR) -name '*.h')
