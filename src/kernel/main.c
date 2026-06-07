@@ -16,6 +16,9 @@
 #include "utils/utils.h"
 #include "linker/symbols.h"
 #include "mmu/mmu.h"
+#include "mem_layout/mem_layout.h"
+#include "asm/asm_helper.h"
+#include "allocator/page_allocator.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -125,18 +128,49 @@ int main(const uint64_t *boot_args_ptr)
 		return 1;
 	}
 
-	dump_memory_map(get_id_map_root());
-
 	kprintf("fdt adrr = 0x%lx size = 0x%lx\n", (virt_addr)fdt_addr,
 		fdt_totalsize(fdt_addr));
+
+	Memory_map_t mmap;
+	if (get_mem(fdt_addr, &mmap) < 0) {
+		kprintf("Failed to parse memory map from FDT. Halting.\n");
+		return 1;
+	}
+
+	// Setup the main page allocator here after setting up the kernel
+	// identity map. As the page allocator needs to reserve pages for the
+	// kernel image and the FDT itself, which requires the identity map to
+	// be functional. also no new pages would be allocated before this point
+	// outside of the kernel image, so the static idmap page pool would be
+	// sufficient for the initial mappings.
+	if (!setup_page_allocator(fdt_addr)) {
+		kprintf("Failed to set up page allocator. Halting.\n");
+		return 1;
+	}
+
+	if (!setup_kernel_map(&mmap)) {
+		kprintf("Error while setting up kernel map\n");
+		return 1;
+	}
+
+	// Map uart to high virtual address.
+	uart_mapped = map_page(get_kernel_map_root(), uart0_base + kernel_base,
+			       uart0_base,
+			       (page_permissions_t){ .execute = false,
+						     .read = true,
+						     .write = true,
+						     .user_accessible = false },
+			       device);
+	if (!uart_mapped) {
+		kprintf("Error while mapping uart\n");
+		return 1;
+	}
+
 
 	if (!enable_mmu(get_id_map_root())) {
 		kprintf("Error while setting up mmu\n");
 		return 1;
 	}
-
-	// setup_global_allocator(fdt_addr);
-	// Do this after setting up the kernel high mappings.
 
 	kprintf("Hello World!\n");
 

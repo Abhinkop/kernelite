@@ -15,6 +15,8 @@
 #include "utils/kprintf.h"
 #include "linker/symbols.h"
 #include "linker/linker_defines.h"
+#include "fdt/fdt.h"
+#include "mem_layout/mem_layout.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -688,10 +690,11 @@ bool setup_kernel_id_map(void)
 		return false;
 	}
 
-	page_permissions_t kernel_exe_perms = { .read = true,
-						.write = true,
-						.execute = true,
-						.user_accessible = false };
+	const page_permissions_t kernel_exe_perms = { .read = true,
+						      .write = true,
+						      .execute = true,
+						      .user_accessible =
+							      false };
 
 	uintptr_t cur_vaddr = (uintptr_t)&image_start;
 	uintptr_t end_vaddr = (uintptr_t)&image_end;
@@ -707,6 +710,63 @@ bool setup_kernel_id_map(void)
 			return false;
 		}
 		cur_vaddr += PAGE_SIZE;
+	}
+
+	return true;
+}
+
+bool setup_kernel_map(Memory_map_t *const mmap)
+{
+	// Todo: In the future, we can extend this function to support multiple
+	// memory.
+	if (mmap == NULL || mmap->count != 1) {
+		kprintf("Error: Invalid memory map provided for kernel mapping\n");
+		return false;
+	}
+
+	page_table_t *kernel_map_root = get_kernel_map_root();
+
+	page_table_init(kernel_map_root);
+
+	uintptr_t cur_phy_addr = mmap->regions[0].base;
+	uintptr_t end_phy_addr =
+		(uintptr_t)mmap->regions[0].base + mmap->regions[0].size;
+
+	kprintf("MMU: Creating kernel Map (0x%lx -> 0x%lx)\n", cur_phy_addr,
+		end_phy_addr);
+
+	const page_permissions_t rw_perms = { .read = true,
+					      .write = true,
+					      .execute = false,
+					      .user_accessible = false };
+	const page_permissions_t rwx_perms = { .read = true,
+					       .write = true,
+					       .execute = true,
+					       .user_accessible = false };
+
+	while (cur_phy_addr < end_phy_addr) {
+		page_permissions_t perms = rw_perms;
+		if (cur_phy_addr >= (uintptr_t)&image_start &&
+		    cur_phy_addr < (uintptr_t)&image_end) {
+			perms = rwx_perms;
+			// For the kernel code region, give RWX
+			// (RW is needed to allow for self-modifying code
+			// patterns like patching the page tables themselves,
+			// and X is needed for execution) Note: The kernel data
+			// region is also given RWX permissions here for
+			// simplicity, but in a more security-conscious design,
+			// you might want to separate the code and data regions
+			// and give them different permissions (e.g., RX for
+			// code and RW for data). For this example, we
+		}
+		if (!map_page(kernel_map_root, cur_phy_addr + kernel_base,
+			      cur_phy_addr, perms, normal)) {
+			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
+				cur_phy_addr);
+			return false;
+		}
+
+		cur_phy_addr += PAGE_SIZE;
 	}
 
 	return true;

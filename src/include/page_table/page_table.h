@@ -454,4 +454,12 @@ void dump_memory_map(page_table_t *root);
  */
 bool setup_kernel_id_map();
 
+/**
+ * @brief Sets up the  kernel map
+ * @param mmap Pointer to the memory map structure containing the physical
+ * memory layout.
+ * @return true on success, false on failure (e.g., if allocation fails).
+ */
+bool setup_kernel_map(Memory_map_t *mmap);
+
 #endif /* PAGE_TABLE_PAGE_TABLE_H */
