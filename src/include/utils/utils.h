@@ -95,6 +95,11 @@ typedef union mpidr_el1_t {
 _Static_assert(sizeof(mpidr_el1_t) == 8, "MPIDR_EL1 must be 64 bits");
 
 /**
+ * @brief Prints the Kernelite ASCII art logo and banner to the console.
+ */
+void print_kernelite_logo(void);
+
+/**
  * @brief Gets the core id.
  * @return the core id.
  */
