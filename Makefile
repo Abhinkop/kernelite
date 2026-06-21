@@ -129,10 +129,9 @@ LIBFDT_TARGETS := $(addprefix $(BUILD_DIR)/libfdt/, $(LIBFDT_OBJS))
 		format \
 		clang-tidy \
 		clang-tidy-fix \
-		clean-subdirs \
 		tools/register_decoder
 
-all: $(TARGET) tools/register_decoder
+all: $(TARGET) tools/register_decoder docs clang-tidy
 
 submodules:
 	@echo "Ensuring git submodules are initialized..."
