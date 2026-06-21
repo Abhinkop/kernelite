@@ -163,7 +163,7 @@ SYM_CODE_START(primary_entry)
     and     x19, x19, #0xFF
     cbnz    x19, halt
 
-    // Save boot arguments (x0 .. x3) for main()
+    // Save the FDT pointer (x0) for main()
     mov	x21, x0				// x21=FDT
 
     // 3. Zero out the BSS section

@@ -647,7 +647,7 @@ _Static_assert(sizeof(sctlr_el1_t) == 8,
  * @param kernel_map_root  Pointer to the kernel_map_root (L1) page table whose
  * physical address is loaded into TTBR1_EL1.  Must not be NULL.
  * @return true   MMU enabled successfully.
- * @return false  @p id_map_root was NULL.
+ * @return false  @p id_map_root or @p kernel_map_root was NULL.
  */
 bool enable_mmu(page_table_t *id_map_root, page_table_t *kernel_map_root);
 

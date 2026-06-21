@@ -60,7 +60,10 @@ static void itoa(unsigned long num, int base, char *buf)
  * Processes the format string and arguments, outputting characters via the
  * configured serial console.
  *
- * Supports: %%c, %%s, %%d, %%u, %%x, %%p.
+ * Supports: %%c, %%s, %%d, %%u, %%x, %%p. A leading 'l' length modifier
+ * (e.g. %lx) is accepted, but the character after 'l' is consumed and
+ * ignored — any %l followed by any character is always printed as
+ * unsigned hex, regardless of what that character actually is.
  *
  * @param format Formatting string containing plain text and specifiers.
  * @param args   An initialized va_list containing the arguments to be

@@ -1,10 +1,9 @@
 /**
  * @file asm_helper.h
- * @brief Assembly helper macros and functions.
- * @brief Header that interfaces with libfdt for Device Tree Blob (DTB) parsing.
+ * @brief Assembly helper macros for system register access.
  *
- * Declares the kernel-facing FDT helper APIs used to validate and extract
- * memory mapping information from the device tree.
+ * Declares macros that wrap MRS/MSR instructions for reading and writing
+ * ARM64 system registers from C.
  *
  * @author Abhin Parekadan Jose
  * @date 2026-05-16
