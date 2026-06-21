@@ -3,6 +3,8 @@
 [![Build](https://github.com/Abhinkop/kernelite/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Abhinkop/kernelite/actions/workflows/build.yml?query=branch%3Amain)
 [![Docs](https://img.shields.io/badge/docs-live-blue?style=flat)](https://abhinkop.github.io/kernelite/)
 
+![Kernelite](docs/kernelite_logo.svg)
+
 **Kernelite** is a minimalist, educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction.
 
 ## 🎯 Project Goals
@@ -16,18 +18,19 @@
 * **src/boot/**: Kernel entry point — EL setup and initial CPU handoff from the bootloader.
 * **src/kernel/**: Core kernel subsystems.
     * **allocator/**: Physical page allocator.
-    * **drivers/**: Hardware drivers (UART).
-    * **icu/**: Minimal interrupt controller unit interface and startup.
+    * **drivers/**: Hardware drivers (PL011 UART, GICv3 interrupt controller).
+    * **icu/**: Interrupt controller unit abstraction — dispatches to the matching driver (currently GICv3) based on the FDT's interrupt-controller node.
     * **error/**: Panic and error string handling.
-    * **exception_handling/**: AArch64 exception vector table and fault handler (ESR_EL1 decoding).
+    * **exception_handling/**: AArch64 exception vector table and fault/IRQ handlers (ESR_EL1 decoding, ICU dispatch).
     * **exit/**: Kernel exit/halt path.
     * **fdt/**: Flattened Device Tree parser.
+    * **mem_layout/**: Kernel base VA and VA/PA translation helpers.
     * **mmu/**: MMU setup — MAIR, TCR, SCTLR_EL1, `enable_mmu()`.
     * **page_table/**: AArch64 page table descriptor construction and mapping.
     * **utils/**: `kprintf`, string utilities.
-    * **main.c**: Kernel `kmain` entry.
+    * **main.c**: Kernel `main()` entry.
 * **src/include/**: Public headers mirroring the `src/kernel/` layout, plus the linker script (`linker/linker.lds`).
-* **tests/**: Host-side unit tests for page table mapping and linker symbol layout.
+* **tests/**: In-kernel unit tests for page table mapping and linker symbol layout, run on QEMU when built with `make TEST=1`.
 * **tools/register_decoder/**: Standalone utility for decoding AArch64 system register values (SCTLR_EL1).
 
 ## 🛠 Building & Running
@@ -79,7 +82,7 @@ The project is designed to be built using: **Make**
 
 #### Make Targets
 Below are the main `make` targets supported by this repository:
-* **make all**: Build the kernel image and the `tools/register_decoder` utility.
+* **make all**: Build the kernel image, the `tools/register_decoder` utility, the Doxygen docs, and run `clang-tidy`.
 * **make run**: Build the kernel and launch it under QEMU with semihosting enabled.
 * **make docs**: Generate Doxygen documentation into `build/docs/html`.
 * **make clean-docs**: Remove generated Doxygen documentation files.
@@ -94,7 +97,8 @@ Below are the main `make` targets supported by this repository:
 To run Kernelite on aarch64 using QEMU:
 ```bash
 make all
-qemu-system-aarch64 -machine virt \
+qemu-system-aarch64 -machine virt,gic-version=3 \
 -cpu cortex-a57 -nographic -kernel build/images/Image -no-reboot \
 -semihosting
 ```
+Or simply run `make run`, which builds the kernel and launches it with the same QEMU invocation.

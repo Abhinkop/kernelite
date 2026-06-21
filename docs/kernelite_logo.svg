@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="280" viewBox="0 0 680 280" role="img">
+  <title>kernelite logo</title>
+  <desc>kernelite — bare-metal kernel</desc>
+
+  <!-- Hexagon layers -->
+  <polygon points="120,60 185,98 185,174 120,212 55,174 55,98"   fill="#042C53"/>
+  <polygon points="120,76 169,104 169,160 120,188 71,160 71,104"  fill="#185FA5"/>
+  <polygon points="120,92 153,110 153,158 120,176 87,158 87,110"  fill="#378ADD"/>
+  <polygon points="120,108 141,120 141,148 120,160 99,148 99,120" fill="#B5D4F4"/>
+
+  <!-- Circuit lines -->
+  <line x1="185" y1="98"  x2="212" y2="83"  stroke="#378ADD" stroke-width="1.5" opacity="0.6"/>
+  <line x1="185" y1="174" x2="212" y2="189" stroke="#378ADD" stroke-width="1.5" opacity="0.6"/>
+  <line x1="120" y1="60"  x2="120" y2="36"  stroke="#378ADD" stroke-width="1.5" opacity="0.6"/>
+  <line x1="55"  y1="98"  x2="28"  y2="83"  stroke="#378ADD" stroke-width="1.5" opacity="0.6"/>
+  <line x1="55"  y1="174" x2="28"  y2="189" stroke="#378ADD" stroke-width="1.5" opacity="0.6"/>
+  <line x1="120" y1="212" x2="120" y2="236" stroke="#378ADD" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- End dots -->
+  <circle cx="212" cy="83"  r="3.5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="212" cy="189" r="3.5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="120" cy="36"  r="3.5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="28"  cy="83"  r="3.5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="28"  cy="189" r="3.5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="120" cy="236" r="3.5" fill="#378ADD" opacity="0.6"/>
+
+  <!-- Wordmark -->
+  <text x="248" y="156" font-family="monospace" font-size="52" font-weight="400" fill="#042C53">kernel<tspan fill="#185FA5">ite</tspan></text>
+  <text x="250" y="188" font-family="monospace" font-size="15" font-weight="400" fill="#378ADD" letter-spacing="3">bare-metal kernel</text>
+</svg>
