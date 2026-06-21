@@ -157,12 +157,35 @@ static bool check_table_permissions(const table_desc_t *entry,
 }
 
 /**
+ * @brief Helper to generate visual indentation based on the current tree depth.
+ * @param level The current depth level in the page table tree (0 for root).
+ */
+static void print_indent(int level)
+{
+	for (int i = 0; i < level; i++) {
+		kprintf("    │   ");
+	}
+}
+
+/**
+ * @brief Initialize a page table.
+ * @param table Pointer to the page table to initialize.
+ */
+static void page_table_init(page_table_t *table)
+{
+	for (size_t i = 0; i < PTRS_PER_TABLE; i++) {
+		table->entries[i].value = 0;
+	}
+}
+
+/**
  * @brief Set the next level table address in a page table entry union.
  * @param entry Pointer to the root page table entry union to modify.
  * @param next_table_addr Physical address of the next level page table (must be
  * 4KB page aligned).
  */
-void set_next_level_table(page_table_entry_t *entry, phy_addr next_table_addr)
+static void set_next_level_table(page_table_entry_t *entry,
+				 phy_addr next_table_addr)
 {
 	if (!entry) {
 		return;
@@ -180,12 +203,12 @@ void set_next_level_table(page_table_entry_t *entry, phy_addr next_table_addr)
 }
 
 /**
- * @brief Allocate a new page table and set it as the next level table in the
- * entry.
+ * @brief Allocate and zero-initialize a new page table, then install it as
+ * the next level table in the entry.
  * @param entry Pointer to the page table entry to modify.
  * @return true if successful, false otherwise.
  */
-bool allocate_new_table(table_desc_t *entry)
+static bool allocate_new_table(table_desc_t *entry)
 {
 	page_table_t *new_table = (page_table_t *)page_alloc(1);
 	if (new_table == NULL) {
@@ -206,13 +229,16 @@ bool allocate_new_table(table_desc_t *entry)
 }
 
 /**
- * @brief Get the next level table from a page table entry.
+ * @brief Get the next level table from a page table entry, allocating it on
+ * demand if the entry is not yet valid.
  * @param entry Pointer to the page table entry.
  * @param perms The requested page permissions for the downstream mapping.
- * @return Pointer to the next level page table, or NULL if allocation failed.
+ * @return Pointer to the next level page table, or NULL if @p entry was
+ * NULL, allocation of a new table failed, or the existing entry's
+ * permissions don't permit the requested page profile.
  */
-page_table_t *get_next_level_table(table_desc_t *entry,
-				   const page_permissions_t perms)
+static page_table_t *get_next_level_table(table_desc_t *entry,
+					  const page_permissions_t perms)
 {
 	if (!entry) {
 		return NULL;
@@ -393,17 +419,6 @@ void print_table_descriptor(const table_desc_t desc)
 }
 
 /**
- * @brief Helper to generate visual indentation based on the current tree depth.
- * @param level The current depth level in the page table tree (0 for root).
- */
-static void print_indent(int level)
-{
-	for (int i = 0; i < level; i++) {
-		kprintf("    │   ");
-	}
-}
-
-/**
  * @brief Recursively prints the structure of the page table tree starting from
  * a given base table.
  * @param table_base Pointer to the base of the current page table level.
@@ -566,13 +581,6 @@ void print_page_table_tree(const page_table_entry_t *table_base,
 	}
 }
 // NOLINTEND(*-recursion,*-cognitive-complexity,*-nested-conditional-operator)
-
-void page_table_init(page_table_t *table)
-{
-	for (size_t i = 0; i < PTRS_PER_TABLE; i++) {
-		table->entries[i].value = 0;
-	}
-}
 
 bool map_page(page_table_t *root, const virt_addr v_addr,
 	      const phy_addr phy_addr, const page_permissions_t perms,

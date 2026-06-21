@@ -412,12 +412,6 @@ typedef struct {
 } page_table_t;
 
 /**
- * @brief Initialize a page table.
- * @param table Pointer to the page table to initialize.
- */
-void page_table_init(page_table_t *table);
-
-/**
  * @brief Map a virtual address to a physical address in the page table.
  *
  * Walks the four-level (L0→L3) translation table rooted at @p root,
@@ -437,7 +431,8 @@ void page_table_init(page_table_t *table);
  *                 (e.g. @ref device → 0x00 Device-nGnRnE,
  *                       @ref normal → 0xFF Normal WB-RWA Cacheable).
  * @return true  Mapping installed successfully.
- * @return false Allocation of an intermediate table failed.
+ * @return false @p root was NULL, @p v_addr/@p phy_addr were not 4 KB
+ * aligned, or allocation of an intermediate table failed.
  */
 bool map_page(page_table_t *root, virt_addr v_addr, phy_addr phy_addr,
 	      page_permissions_t perms, enum mem_type_t mem_typ);
