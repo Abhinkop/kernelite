@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 240 240" role="img">
+  <title>kernelite icon</title>
+  <desc>kernelite hexagonal chip mark</desc>
+
+  <polygon points="120,20 200,65 200,155 120,200 40,155 40,65"   fill="#042C53"/>
+  <polygon points="120,38 182,75 182,145 120,182 58,145 58,75"   fill="#185FA5"/>
+  <polygon points="120,56 164,80 164,140 120,164 76,140 76,80"   fill="#378ADD"/>
+  <polygon points="120,74 146,89 146,131 120,146 94,131 94,89"   fill="#B5D4F4"/>
+
+  <line x1="200" y1="65"  x2="224" y2="52"  stroke="#378ADD" stroke-width="2" opacity="0.6"/>
+  <line x1="200" y1="155" x2="224" y2="168" stroke="#378ADD" stroke-width="2" opacity="0.6"/>
+  <line x1="120" y1="20"  x2="120" y2="4"   stroke="#378ADD" stroke-width="2" opacity="0.6"/>
+  <line x1="40"  y1="65"  x2="16"  y2="52"  stroke="#378ADD" stroke-width="2" opacity="0.6"/>
+  <line x1="40"  y1="155" x2="16"  y2="168" stroke="#378ADD" stroke-width="2" opacity="0.6"/>
+  <line x1="120" y1="200" x2="120" y2="216" stroke="#378ADD" stroke-width="2" opacity="0.6"/>
+
+  <circle cx="224" cy="52"  r="5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="224" cy="168" r="5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="120" cy="4"   r="5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="16"  cy="52"  r="5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="16"  cy="168" r="5" fill="#378ADD" opacity="0.6"/>
+  <circle cx="120" cy="216" r="5" fill="#378ADD" opacity="0.6"/>
+</svg>

@@ -216,6 +216,8 @@ int main(const uint64_t *boot_args_ptr)
 	pl011_init(&uart0, uart0_base);
 	set_kprintf_console((serial_t){ .putc = uart0_putchar, .getc = NULL });
 
+	print_kernelite_logo();
+
 	// NOLINTNEXTLINE(*-int-to-ptr)
 	const void *fdt_addr = (const void *)boot_args_ptr[0];
 
