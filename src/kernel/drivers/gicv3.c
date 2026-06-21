@@ -1631,40 +1631,6 @@ static inline bool unconfigure_spi(const uint32_t intid)
 	return true;
 }
 
-/**
- * @brief Trigger a Group 1 SGI targeting the current PE.
- *
- * Generates a Software Generated Interrupt by writing ICC_SGI1R_EL1.
- * The SGI is targeted at the current PE only, using the core ID read
- * from MPIDR_EL1.Aff0 to set the corresponding TargetList bit.
- *
- * @note The GIC must be fully initialised and IRQs unmasked via
- *       unmask_irq() before the SGI will be taken as an exception.
- *       Aff1, Aff2, Aff3 are left as 0, which is correct for a
- *       single-cluster system such as QEMU virt.
- *
- * @param intid SGI INTID to generate (0-15). Values outside this
- *              range are invalid and will be rejected.
- * @return true if the SGI was sent, false if intid is out of range.
- */
-bool trigger_sgi(uint32_t intid)
-{
-	if (intid > 15) {
-		kprintf("Error: invalid SGI INTID %u — SGIs are INTIDs 0-15 only\n",
-			intid);
-		return false;
-	}
-
-	icc_sgi1r_el1_t temp;
-	temp.raw = 0;
-	temp.intid = intid & 0xF;
-	temp.target_list = (1ULL << get_core_id());
-	WRITE_SYS_REG(icc_sgi1r_el1, temp.raw);
-	asm volatile("isb");
-
-	return true;
-}
-
 void gicv3_init(void *fdt)
 {
 	const int intc_node = get_intc_node_offset(fdt);
