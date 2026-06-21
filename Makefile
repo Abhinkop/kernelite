@@ -64,11 +64,13 @@ TARGET = $(BUILD_DIR)/images/$(IMG_NAME)
 SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/exit/exit.c \
 		  $(SRC_DIR)/kernel/main.c \
+		  $(SRC_DIR)/kernel/drivers/gicv3.c \
 		  $(SRC_DIR)/kernel/drivers/uart.c \
 		  $(SRC_DIR)/kernel/error/panic.c \
 		  $(SRC_DIR)/kernel/error/error_strings.c \
 		  $(SRC_DIR)/kernel/exception_handling/handler.c \
 		  $(SRC_DIR)/kernel/fdt/fdt.c \
+		  $(SRC_DIR)/kernel/icu/icu.c \
 		  $(SRC_DIR)/kernel/mem_layout/mem_layout.c \
 		  $(SRC_DIR)/kernel/mmu/mmu.c \
 		  $(SRC_DIR)/kernel/page_table/page_table.c \
@@ -127,10 +129,9 @@ LIBFDT_TARGETS := $(addprefix $(BUILD_DIR)/libfdt/, $(LIBFDT_OBJS))
 		format \
 		clang-tidy \
 		clang-tidy-fix \
-		clean-subdirs \
 		tools/register_decoder
 
-all: $(TARGET) tools/register_decoder
+all: $(TARGET) tools/register_decoder docs clang-tidy
 
 submodules:
 	@echo "Ensuring git submodules are initialized..."
@@ -174,7 +175,7 @@ $(BUILD_DIR)/libfdt/%.o: $(LIBFDT_DIR)/%.c
 
 run: $(TARGET)
 	@echo "Running QEMU..."
-	$(VERBOSE_PREFIX)qemu-system-aarch64 -machine virt \
+	$(VERBOSE_PREFIX)qemu-system-aarch64 -machine virt,gic-version=3 \
 	-cpu cortex-a57 -nographic -kernel $(TARGET) -no-reboot \
 	-semihosting
 

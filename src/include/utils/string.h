@@ -127,4 +127,15 @@ size_t strnlen(const char *str, size_t maxlen);
 // NOLINTNEXTLINE(readability-redundant-declaration)
 unsigned long strtoul(const char *nptr, char **endptr, int base);
 
+/**
+ * @brief Compare two null-terminated strings.
+ * @param lhs The first string to compare.
+ * @param rhs The second string to compare.
+ * @return
+ * - 0 if the strings are equal.
+ * - A negative value if @p lhs is less than @p rhs.
+ * - A positive value if @p lhs is greater than @p rhs.
+ */
+int strcmp(const char *lhs, const char *rhs);
+
 #endif // UTILS_STRING_H

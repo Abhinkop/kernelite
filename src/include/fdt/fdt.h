@@ -62,4 +62,40 @@ bool check_fdt(const void *ptr);
  */
 int get_mem(const void *fdt, Memory_map_t *mmap);
 
+/**
+ * @brief Retrieves a pointer to the interrupt controller node in the FDT.
+ * @param fdt Pointer to the FDT header in memory.
+ * @return Offset of the interrupt controller node, or a negative libfdt error
+ * code if not found.
+ */
+int get_intc_node_offset(const void *fdt);
+
+/**
+ * @brief Checks if the given FDT offset represents an error.
+ * @param offset The FDT offset to check.
+ * @return true if the offset is an error code, false otherwise.
+ */
+bool fdt_is_error(int offset);
+
+/**
+ * @brief Retrieves the compatible string for a given node.
+ * @param fdt Pointer to the FDT header in memory.
+ * @param node_offset Offset of the node for which to retrieve the compatible
+ * string.
+ * @return Pointer to the compatible string, or NULL if not found.
+ */
+char *get_compatible_string(const void *fdt, int node_offset);
+
+/**
+ * @brief Retrieves the register property for a given node.
+ * @param fdt Pointer to the FDT header in memory.
+ * @param node_offset Offset of the node for which to retrieve the register
+ * property.
+ * @param reg_map Pointer to a Memory_map_t structure to be populated with
+ * register information.
+ * @return true if the register property is found and successfully parsed, false
+ * otherwise.
+ */
+bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map);
+
 #endif // FDT_FDT_H

@@ -155,7 +155,7 @@ jobs:
     - name: Execute QEMU Internal Tests
       run: |
         timeout 30s qemu-system-aarch64 \
-          -machine virt \
+          -machine virt,gic-version=3 \
           -cpu cortex-a57 \
           -nographic \
           -kernel ./Image \
@@ -194,7 +194,7 @@ jobs:
     - name: Execute QEMU Internal Tests
       run: |
         timeout 30s qemu-system-aarch64 \
-          -machine virt \
+          -machine virt,gic-version=3 \
           -cpu cortex-a57 \
           -nographic \
           -kernel ./Image \

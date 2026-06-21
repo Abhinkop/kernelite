@@ -1,7 +1,7 @@
 #include "linker/linker_defines.h"
 
 /* QEMU virt loads raw Image at RAM_BASE + 0x80000 = 0x40080000 */
-#define KERNEL_LOAD_ADDR 0x40080000
+#define KERNEL_LOAD_ADDR 0xFFFF000040080000
 
 ENTRY(primary_entry)
 

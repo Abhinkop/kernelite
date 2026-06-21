@@ -19,6 +19,7 @@
 #include "mem_layout/mem_layout.h"
 #include "asm/asm_helper.h"
 #include "allocator/page_allocator.h"
+#include "icu/icu.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -51,13 +52,13 @@ static uart_device_t uart0;
 /**
  * @brief Captured bootloader arguments.
  *
- * Stores the raw values of registers x0 through x3 as passed by the
- * bootloader (e.g., U-Boot) at the moment of kernel entry.
+ * boot.s only ever saves x0 into boot_args[0]; boot_args[1..3] are never
+ * written and simply read as 0 because the array lives in zeroed BSS.
  *
  * - boot_args[0]: Physical address of the Device Tree Blob (FDT).
- * - boot_args[1]: Reserved (0).
- * - boot_args[2]: Reserved (0).
- * - boot_args[3]: Reserved (0).
+ * - boot_args[1]: Unused (reads as 0 due to BSS zero-init).
+ * - boot_args[2]: Unused (reads as 0 due to BSS zero-init).
+ * - boot_args[3]: Unused (reads as 0 due to BSS zero-init).
  */
 uint64_t boot_args[4];
 
@@ -70,22 +71,54 @@ uint64_t boot_args[4];
  *
  * @param chr The character to be transmitted over UART0.
  */
-void uart0_putchar(char chr)
+static void uart0_putchar(char chr)
 {
 	uart0.putc(&uart0, chr);
 }
 
 /**
- * @brief Print the memory map.
- * @param mmap Pointer to the memory map structure.
+ * @brief Trigger a Group 1 SGI targeting the current PE.
+ *
+ * Generates a Software Generated Interrupt by writing ICC_SGI1R_EL1.
+ * The SGI is targeted at the current PE only, using the core ID read
+ * from MPIDR_EL1.Aff0 to set the corresponding TargetList bit.
+ *
+ * @note The GIC must be fully initialised and IRQs unmasked via
+ *       unmask_irq() before the SGI will be taken as an exception.
+ *       Aff1, Aff2, Aff3 are left as 0, which is correct for a
+ *       single-cluster system such as QEMU virt.
+ *
+ * @param intid SGI INTID to generate (0-15). Values outside this
+ *              range are invalid and will be rejected.
  */
-void print_memory_map(const Memory_map_t *mmap)
+void trigger_sgi(uint32_t intid)
 {
-	kprintf("Memory Map (Total Regions: %d):\n", mmap->count);
-	for (int i = 0; i < mmap->count; i++) {
-		kprintf("  Region %d: Base = 0x%lx, Size = 0x%lx bytes\n", i,
-			mmap->regions[i].base, mmap->regions[i].size);
+	if (intid > 15) {
+		kprintf("Error: invalid SGI INTID %u — SGIs are INTIDs 0-15 only\n",
+			intid);
+		return;
 	}
+
+	/* ICC_SGI1R_EL1 raw layout: [15:0] TargetList, [27:24] INTID,
+	 * Aff1/Aff2/Aff3 left as 0. */
+	uint64_t raw = (1ULL << get_core_id()) | ((uint64_t)intid << 24);
+	WRITE_SYS_REG(icc_sgi1r_el1, raw);
+	asm volatile("isb");
+}
+
+/**
+ * @brief Test handler for a self-triggered SGI.
+ *
+ * Registered against an SGI INTID via icu_register_irq() to verify that
+ * trigger_sgi() correctly reaches the ICU dispatch path. Prints the INTID
+ * passed as private_data when invoked.
+ *
+ * @param int_id Pointer to the uint32_t INTID, passed through as
+ *               private_data on each invocation.
+ */
+void sgi_handler(void *int_id)
+{
+	kprintf("Received int id = %u\n", *((uint32_t *)int_id));
 }
 
 /**
@@ -95,8 +128,15 @@ void print_memory_map(const Memory_map_t *mmap)
  * materialisation (e.g. &uart0_putchar) happens while the PC is already in the
  * high VA range. It must never return into the low-VA boot/exit path once
  * TTBR0 is disabled.
+ *
+ * Never returns: after initialization it parks the core in an infinite
+ * wfi loop. The trailing exit(0) is unreachable and exists only to satisfy
+ * the compiler/static analysis that every path terminates.
+ *
+ * @param fdt_addr Physical address of the Device Tree Blob, passed through
+ * from main().
  */
-static void __attribute__((noinline)) high_half_main(void)
+static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 {
 	update_kernel_base_va();
 	fixup_page_allocator();
@@ -139,6 +179,21 @@ static void __attribute__((noinline)) high_half_main(void)
 	asm volatile("adr %0, ." : "=r"(current_pc));
 	kprintf("Current PC: 0x%lx\n", current_pc);
 
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	icu_init((void *)pa_to_va(fdt_addr));
+
+	pl011_register_handler(&uart0);
+
+	uint32_t intid = 11;
+	handler_data_t temp = {
+		.handler = sgi_handler,
+		// Danger: Passing stack var to irq handler
+		// Fine now as this is only to test the implementaion.
+		.private_data = &intid,
+	};
+	icu_register_irq(intid, temp);
+	trigger_sgi(11);
+
 	exit(0);
 }
 
@@ -147,10 +202,13 @@ static void __attribute__((noinline)) high_half_main(void)
  *
  * Called from primary_entry (boot.s) after the stack has been initialized
  * and the BSS section has been cleared.
- * @note This function should never return.
+ * @note On success this function never returns: it hands off to
+ * high_half_main(), which parks the core in an infinite wfi loop. It only
+ * returns on early initialization failure.
  * @param boot_args_ptr Pointer to an array containing the bootloader arguments
  * passed in registers x0-x3.
- * @return exit code
+ * @return 1 on initialization failure (id map setup, UART mapping, or FDT
+ * memory map parsing failed). Does not return on success.
  */
 int main(const uint64_t *boot_args_ptr)
 {
@@ -231,7 +289,7 @@ int main(const uint64_t *boot_args_ptr)
 
 	// Running at high VAs now. Hand off to a fresh function so all
 	// PC-relative addresses are formed at high PC, then never come back.
-	high_half_main();
+	high_half_main((phy_addr)fdt_addr);
 
 	__builtin_unreachable();
 }

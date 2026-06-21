@@ -132,13 +132,18 @@ b lower_el_32_fiq
 .org vector_table + 0x780
 b lower_el_32_serror
 
+// NOTE: curr_el_curr_sp_irq (EL1 using SP_EL1, the normal running state) is
+// the only vector wired to real IRQ dispatch (el1_irq_handler -> ICU). Every
+// other vector below — including IRQs taken from SP_EL0 or from a lower
+// EL — falls through to generic_handler, which prints state and halts.
+// A lower-EL or SP0 interrupt will currently crash the kernel instead of
+// being dispatched.
 curr_el_sp0_sync:
 curr_el_sp0_irq:
 curr_el_sp0_fiq:
 curr_el_sp0_serror:
 
 curr_el_curr_sp_sync:
-curr_el_curr_sp_irq:
 curr_el_curr_sp_serror:
 curr_el_curr_sp_fiq:
 
@@ -153,4 +158,9 @@ lower_el_32_fiq:
 lower_el_32_serror:
     SAVE_REGS
     bl generic_handler
+    RESTORE_REGS
+
+curr_el_curr_sp_irq:
+    SAVE_REGS
+    bl el1_irq_handler
     RESTORE_REGS
