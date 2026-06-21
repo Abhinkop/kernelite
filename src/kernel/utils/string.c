@@ -155,4 +155,14 @@ unsigned long strtoul(const char *nptr, char **endptr, int base)
 	return res;
 }
 
+int strcmp(const char *lhs, const char *rhs)
+{
+	while (*lhs && (*lhs == *rhs)) {
+		lhs++;
+		rhs++;
+	}
+
+	return (unsigned char)*lhs - (unsigned char)*rhs;
+}
+
 // NOLINTEND(bugprone-easily-swappable-parameters)

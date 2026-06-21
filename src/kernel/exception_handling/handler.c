@@ -11,10 +11,9 @@
  */
 
 #include "utils/kprintf.h"
+#include "icu/icu.h"
 
 #include <stdint.h>
-
-extern void exit(uint32_t code);
 
 /** Shift for extracting exception class */
 #define ESR_EC_SHIFT 26U
@@ -36,6 +35,8 @@ extern void exit(uint32_t code);
 
 /** ISS[6]: Write-not-Read           */
 #define ESR_ISS_WNR_BIT (1U << 6)
+
+extern void exit(uint32_t code);
 
 /**
  * @brief Generic exception handler used during early bring-up.
@@ -79,4 +80,16 @@ void generic_handler(void)
 	}
 
 	exit(1);
+}
+
+/**
+ * @brief EL1 IRQ exception handler.
+ *
+ * Entry point invoked from the IRQ vector in the exception vector table.
+ * Delegates to the ICU dispatch layer to acknowledge, dispatch, and signal
+ * EOI for the pending interrupt.
+ */
+void el1_irq_handler(void)
+{
+	icu_handle_irq();
 }

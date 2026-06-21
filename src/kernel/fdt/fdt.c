@@ -15,6 +15,7 @@
 #include "utils/kprintf.h"
 
 #include <libfdt.h>
+#include <stdbool.h>
 
 bool check_fdt(const void *ptr)
 {
@@ -128,3 +129,64 @@ int get_mem(const void *fdt, Memory_map_t *mmap)
 	return 0;
 }
 // NOLINTEND(readability-function-cognitive-complexity)
+
+int get_intc_node_offset(const void *fdt)
+{
+	return fdt_node_offset_by_prop_value(fdt, -1, "interrupt-controller",
+					     NULL, 0);
+}
+
+bool fdt_is_error(int offset)
+{
+	return offset < 0;
+}
+
+char *get_compatible_string(const void *fdt, int node_offset)
+{
+	int len;
+	const char *compat = fdt_getprop(fdt, node_offset, "compatible", &len);
+	if (!compat || len <= 0) {
+		return NULL;
+	}
+	return (char *)compat;
+}
+
+bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map)
+{
+	reg_map->count = 0;
+
+	int addr_cells = fdt_address_cells(fdt, node_offset);
+	int size_cells = fdt_size_cells(fdt, node_offset);
+
+	int entry_cells = addr_cells + size_cells;
+	int len;
+	const fdt32_t *reg = fdt_getprop(fdt, node_offset, "reg", &len);
+	if (!reg || len <= 0) {
+		return false;
+	}
+
+	size_t num_entries = len / (entry_cells * sizeof(fdt32_t));
+	while (num_entries > 0) {
+		uint64_t base = 0;
+		uint64_t size = 0;
+
+		for (int i = 0; i < addr_cells; i++) {
+			base = (base << 32) | fdt32_to_cpu(*reg++);
+		}
+		for (int i = 0; i < size_cells; i++) {
+			size = (size << 32) | fdt32_to_cpu(*reg++);
+		}
+
+		if (reg_map->count < MAX_MEM_REGIONS) {
+			reg_map->regions[reg_map->count].base = base;
+			reg_map->regions[reg_map->count].size = size;
+			reg_map->count++;
+		} else {
+			kprintf("FDT Warning: reg property has more entries than MAX_MEM_REGIONS, truncating\n");
+			return false;
+		}
+		num_entries--;
+	}
+
+	return true;
+}

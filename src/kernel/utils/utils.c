@@ -15,8 +15,20 @@
 #include "allocator/page_allocator.h"
 #include "linker/symbols.h"
 #include "fdt/fdt.h"
+#include "asm/asm_helper.h"
 
 #include <libfdt.h>
+
+/**
+ * @brief Reads the current Exception Level via the CurrentEL system register.
+ * @return current_el_t The decoded CurrentEL register value.
+ */
+static inline current_el_t read_current_el(void)
+{
+	current_el_t val;
+	READ_SYS_REG(CurrentEL, val.raw);
+	return val;
+}
 
 /**
  * @brief Reserve pages occupied by the kernel image.
@@ -50,7 +62,7 @@ bool reserve_kernel_img_pages(void)
  * and reserves those pages in the page allocator to prevent them from being
  * allocated for other purposes.
  *
- * @param fdt_addr Pointer to the FDT address.
+ * @param fdt_addr Pointer to the FDT blob.
  * @return bool True if reservation was successful, false otherwise.
  */
 bool reserve_fdt_pages(const void *fdt_addr)
@@ -108,4 +120,39 @@ bool setup_page_allocator(const void *fdt_addr)
 	}
 
 	return true;
+}
+
+uint32_t get_core_id(void)
+{
+	mpidr_el1_t mpidr;
+	READ_SYS_REG(mpidr_el1, mpidr.raw);
+	return mpidr.aff0;
+}
+
+void print_current_el(void)
+{
+	current_el_t cur_el = read_current_el();
+
+	const char *el_str;
+	switch (cur_el.el) {
+	case 0:
+		el_str = "EL0 (Unprivileged / User)";
+		break;
+	case 1:
+		el_str = "EL1 (Kernel)";
+		break;
+	case 2:
+		el_str = "EL2 (Hypervisor)";
+		break;
+	case 3:
+		el_str = "EL3 (Secure Monitor)";
+		break;
+	default:
+		el_str = "Unknown";
+	}
+
+	kprintf("-------------- CurrentEL ----------------\n");
+	kprintf("EL          : %u (%s)\n", cur_el.el, el_str);
+	kprintf("Raw         : 0x%lx\n", cur_el.raw);
+	kprintf("-----------------------------------------\n\n");
 }

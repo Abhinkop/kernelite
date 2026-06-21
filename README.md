@@ -17,6 +17,7 @@
 * **src/kernel/**: Core kernel subsystems.
     * **allocator/**: Physical page allocator.
     * **drivers/**: Hardware drivers (UART).
+    * **icu/**: Minimal interrupt controller unit interface and startup.
     * **error/**: Panic and error string handling.
     * **exception_handling/**: AArch64 exception vector table and fault handler (ESR_EL1 decoding).
     * **exit/**: Kernel exit/halt path.
