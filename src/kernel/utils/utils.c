@@ -62,7 +62,7 @@ static inline current_el_t read_current_el(void)
  *
  * @return bool True if reservation was successful, false otherwise.
  */
-bool reserve_kernel_img_pages(void)
+static bool reserve_kernel_img_pages(void)
 {
 	size_t img_size = get_image_size();
 	size_t num_pages = (img_size + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -88,7 +88,7 @@ bool reserve_kernel_img_pages(void)
  * @param fdt_addr Pointer to the FDT blob.
  * @return bool True if reservation was successful, false otherwise.
  */
-bool reserve_fdt_pages(const void *fdt_addr)
+static bool reserve_fdt_pages(const void *fdt_addr)
 {
 	size_t fdt_size = fdt_totalsize(fdt_addr);
 	size_t num_pages = (fdt_size + PAGE_SIZE - 1) / PAGE_SIZE;
