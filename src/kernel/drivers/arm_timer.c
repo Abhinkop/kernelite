@@ -28,15 +28,6 @@
  *  ticks from a millisecond period and CNTFRQ_EL0. */
 #define MILLISECONDS_PER_SECOND 1000U
 
-/** @brief Number of ticks CNTP_TVAL_EL0 must be loaded with to fire once
- *  per configured tick period; set by set_period() and consumed by
- *  timer_isr() to re-arm the timer after each interrupt. */
-static uint64_t period_ticks;
-
-/** @brief Handler registered by the caller of setup_arm64_sys_timer(),
- *  invoked from timer_isr() on every tick. */
-static handler_data_t tick_handler;
-
 /**
  * @brief CNTP_CTL_EL0 (EL1 Physical Timer Control Register) layout.
  */
@@ -57,6 +48,15 @@ typedef union cntp_ctl_el0_t {
 		bool is_condition_fulfilled : 1;
 	};
 } cntp_ctl_el0_t;
+
+/** @brief Number of ticks CNTP_TVAL_EL0 must be loaded with to fire once
+ *  per configured tick period; set by set_period() and consumed by
+ *  timer_isr() to re-arm the timer after each interrupt. */
+static uint64_t period_ticks;
+
+/** @brief Handler registered by the caller of setup_arm64_sys_timer(),
+ *  invoked from timer_isr() on every tick. */
+static handler_data_t tick_handler;
 
 /**
  * @brief ISR for the EL1 physical timer interrupt.
