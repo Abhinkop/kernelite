@@ -13,12 +13,12 @@
 
 #include "allocator/page_allocator.h"
 
+#include "utils/kprintf.h"
+#include "linker/symbols.h"
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-
-#include "utils/kprintf.h"
-#include "linker/symbols.h"
 
 /** @brief Start of the managed memory region */
 static uint8_t *mem_base = NULL;
