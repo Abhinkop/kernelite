@@ -41,7 +41,7 @@ typedef struct handler_data_t {
  * @param fdt Pointer to the Flattened Device Tree (FDT) blob, which may be used
  *            to discover interrupt controller properties and configuration.
  */
-void icu_init(void *fdt);
+void icu_init(const void *fdt);
 
 /**
  * @brief Register a handler for a hardware interrupt source and enable it.

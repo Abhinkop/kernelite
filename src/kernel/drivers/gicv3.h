@@ -805,7 +805,7 @@ typedef struct gicv3_memap_t {
  * @param fdt  Pointer to the Flattened Device Tree blob used to discover the
  *             interrupt controller configuration.
  */
-void gicv3_init(void *fdt);
+void gicv3_init(const void *fdt);
 
 /**
  * @brief Register a handler for a hardware interrupt source and enable it.

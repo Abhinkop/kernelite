@@ -1631,7 +1631,7 @@ static inline bool unconfigure_spi(const uint32_t intid)
 	return true;
 }
 
-void gicv3_init(void *fdt)
+void gicv3_init(const void *fdt)
 {
 	const int intc_node = get_intc_node_offset(fdt);
 	if (fdt_is_error(intc_node)) {
