@@ -27,7 +27,7 @@ bool enable_mmu(page_table_t *id_map_root, page_table_t *kernel_map_root)
 	mair.value = 0;
 
 	// Attribute 0: Device-nGnRnE (standard for MMIO/UART/Peripherals)
-	mair.attr[0].device.type = device_nGnRnE;
+	mair.attr[0].device.type = DEVICE_nGnRnE;
 	mair.attr[0].device.xs = 0;
 
 	// Attribute 1: Normal Memory, Outer/Inner Write-Back Non-transient

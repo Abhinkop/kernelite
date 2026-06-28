@@ -22,25 +22,25 @@
  * R  = Reordering  (accesses to the same device may be reordered)
  * E  = Early write acknowledgement (write can be acknowledged before device)
  */
-enum device_type_t {
+enum device_type {
 	/** Non-Gathering, Non-Reordering, No early ack */
-	device_nGnRnE = 0b00,
+	DEVICE_nGnRnE = 0b00,
 
 	/** Non-Gathering, Non-Reordering, Early ack    */
-	device_nGnRE = 0b01,
+	DEVICE_nGnRE = 0b01,
 
 	/** Non-Gathering, Reordering,     Early ack    */
-	device_nGRE = 0b10,
+	DEVICE_nGRE = 0b10,
 
 	/** Gathering,     Reordering,     Early ack    */
-	device_GRE = 0b11,
+	DEVICE_GRE = 0b11,
 };
 
 /**
  * @brief MAIR attribute byte layout for Device memory.
  *
  * Bits[7:4] must be 0b0000 to mark this slot as Device memory.
- * Bits[3:2] select the device subtype (see @ref device_type_t).
+ * Bits[3:2] select the device subtype (see @ref device_type).
  * Bit[1] is RES0.
  * Bit[0] is the XS bit (FEAT_XS memory-tagging share domain); RES0 otherwise.
  */
@@ -51,7 +51,7 @@ typedef struct __attribute__((packed)) mair_device_attr_t {
 	/** [1]   RES0 */
 	uint8_t res0_1 : 1;
 
-	/** [3:2] Device subtype (see @ref device_type_t). */
+	/** [3:2] Device subtype (see @ref device_type). */
 	uint8_t type : 2;
 
 	/** [7:4] Must be 0b0000 to identify as Device memory. */
@@ -141,7 +141,7 @@ _Static_assert(sizeof(mair_reg_t) == 8,
  *
  * Applies to IRGN0, ORGN0 (TTBR0 walks) and IRGN1, ORGN1 (TTBR1 walks).
  */
-enum tcr_cacheability_t {
+enum tcr_cacheability {
 	TCR_CACHE_NON_CACHEABLE = 0b00, /**< Normal, Non-cacheable. */
 	TCR_CACHE_WB_RA_WA = 0b01, /**< Normal, Write-Back Read-Alloc
 				      Write-Alloc Cacheable. */
@@ -156,7 +156,7 @@ enum tcr_cacheability_t {
  *
  * Applies to SH0 (TTBR0 walks) and SH1 (TTBR1 walks).
  */
-enum tcr_shareability_t {
+enum tcr_shareability {
 	TCR_SH_NON_SHAREABLE = 0b00, /**< Non-Shareable. */
 	TCR_SH_RESERVED = 0b01, /**< RESERVED — must not be used. */
 	TCR_SH_OUTER_SHAREABLE = 0b10, /**< Outer Shareable. */
@@ -166,7 +166,7 @@ enum tcr_shareability_t {
 /**
  * @brief Translation granule size for TTBR0_EL1 (TG0 field, bits[15:14]).
  */
-enum tcr_tg0_t {
+enum tcr_tg0 {
 	TCR_TG0_4KB = 0b00, /**< 4 KB granule. */
 	TCR_TG0_64KB = 0b01, /**< 64 KB granule. */
 	TCR_TG0_16KB = 0b10, /**< 16 KB granule. */
@@ -175,9 +175,9 @@ enum tcr_tg0_t {
 /**
  * @brief Translation granule size for TTBR1_EL1 (TG1 field, bits[31:30]).
  *
- * @note The encoding is different from @ref tcr_tg0_t.
+ * @note The encoding is different from @ref tcr_tg0.
  */
-enum tcr_tg1_t {
+enum tcr_tg1 {
 	TCR_TG1_16KB = 0b01, /**< 16 KB granule. */
 	TCR_TG1_4KB = 0b10, /**< 4 KB granule.  */
 	TCR_TG1_64KB = 0b11, /**< 64 KB granule. */
@@ -186,7 +186,7 @@ enum tcr_tg1_t {
 /**
  * @brief Intermediate Physical Address size (IPS field, bits[34:32]).
  */
-enum tcr_ips_t {
+enum tcr_ips {
 	TCR_IPS_32BIT = 0b000, /**<  32-bit PA (4 GB).  */
 	TCR_IPS_36BIT = 0b001, /**<  36-bit PA (64 GB). */
 	TCR_IPS_40BIT = 0b010, /**<  40-bit PA (1 TB).  */
@@ -225,19 +225,19 @@ typedef struct __attribute__((packed)) tcr_reg_t {
 			uint64_t epd0 : 1;
 
 			/** [9:8]   IRGN0 — Inner cacheability of TTBR0 table
-			 * walks (see @ref tcr_cacheability_t). */
+			 * walks (see @ref tcr_cacheability). */
 			uint64_t irgn0 : 2;
 
 			/** [11:10] ORGN0 — Outer cacheability of TTBR0 table
-			 * walks (see @ref tcr_cacheability_t). */
+			 * walks (see @ref tcr_cacheability). */
 			uint64_t orgn0 : 2;
 
 			/** [13:12] SH0 — Shareability of TTBR0 table walks (see
-			 * @ref tcr_shareability_t). */
+			 * @ref tcr_shareability). */
 			uint64_t sh0 : 2;
 
 			/** [15:14] TG0 — Granule size for TTBR0 (see @ref
-			 * tcr_tg0_t). */
+			 * tcr_tg0). */
 			uint64_t tg0 : 2;
 
 			/* ── TTBR1 region ───────────────────────────────────
@@ -255,25 +255,25 @@ typedef struct __attribute__((packed)) tcr_reg_t {
 			uint64_t epd1 : 1;
 
 			/** [25:24] IRGN1 — Inner cacheability of TTBR1 table
-			 * walks (see @ref tcr_cacheability_t). */
+			 * walks (see @ref tcr_cacheability). */
 			uint64_t irgn1 : 2;
 
 			/** [27:26] ORGN1 — Outer cacheability of TTBR1 table
-			 * walks (see @ref tcr_cacheability_t). */
+			 * walks (see @ref tcr_cacheability). */
 			uint64_t orgn1 : 2;
 
 			/** [29:28] SH1 — Shareability of TTBR1 table walks (see
-			 * @ref tcr_shareability_t). */
+			 * @ref tcr_shareability). */
 			uint64_t sh1 : 2;
 
 			/** [31:30] TG1 — Granule size for TTBR1 (see @ref
-			 * tcr_tg1_t). */
+			 * tcr_tg1). */
 			uint64_t tg1 : 2;
 
 			/* ── Physical address size ──────────────────────────
 			 */
 			/** [34:32] IPS — Intermediate PA size (see @ref
-			 * tcr_ips_t). */
+			 * tcr_ips). */
 			uint64_t ips : 3;
 
 			/** [35]    RES0. */
