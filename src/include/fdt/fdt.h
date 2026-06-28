@@ -175,4 +175,18 @@ bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map);
 int get_intr_property(const void *fdt, int node_offset,
 		      Interrupt_t *out_intr_array, size_t out_intr_array_len);
 
+/**
+ * @brief Finds all nodes in the FDT matching a given "compatible" string.
+ * @param fdt Pointer to the FDT header in memory.
+ * @param compatible Compatible string to search for.
+ * @param out_node_offsets Array to be populated with the offsets of matching
+ * nodes.
+ * @param out_node_offsets_len Number of elements available in
+ * @p out_node_offsets.
+ * @return The number of matching nodes found (capped at
+ * @p out_node_offsets_len), or a negative libfdt error code on failure.
+ */
+int get_nodes_by_compatible(const void *fdt, const char *compatible,
+			    int *out_node_offsets, size_t out_node_offsets_len);
+
 #endif // FDT_FDT_H

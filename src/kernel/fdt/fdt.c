@@ -293,3 +293,26 @@ int get_intr_property(const void *fdt, int node_offset,
 
 	return (int)count;
 }
+
+int get_nodes_by_compatible(const void *fdt, const char *compatible,
+			    int *out_node_offsets, size_t out_node_offsets_len)
+{
+	if (!fdt || !compatible || !out_node_offsets) {
+		return -FDT_ERR_INTERNAL;
+	}
+
+	int node = -1;
+	size_t count = 0;
+	while ((node = fdt_node_offset_by_compatible(fdt, node, compatible)) >=
+	       0) {
+		if (count >= out_node_offsets_len) {
+			kprintf("FDT Warning: more \"%s\" compatible nodes than out_node_offsets_len, truncating\n",
+				compatible);
+			break;
+		}
+		out_node_offsets[count] = node;
+		count++;
+	}
+
+	return (int)count;
+}
