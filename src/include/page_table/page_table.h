@@ -305,7 +305,6 @@ typedef union __attribute__((packed)) page_table_entry_t {
 } page_table_entry_t;
 
 /**
- * @struct page_table_t
  * @brief Represents a single page table level (512 entries).
  */
 typedef struct page_table_t {
