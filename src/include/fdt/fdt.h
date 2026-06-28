@@ -48,7 +48,7 @@ typedef struct memory_map_t {
  * @brief Interrupt category, as encoded in the first cell of an FDT
  * "interrupts" property.
  */
-typedef enum {
+typedef enum irq_type_t {
 	/** @brief Shared Peripheral Interrupt (routable to any core). */
 	IRQ_TYPE_SPI = 0x0,
 
@@ -59,7 +59,7 @@ typedef enum {
 /**
  * @brief Signal shape used to trigger an interrupt.
  */
-typedef enum {
+typedef enum irq_trigger_t {
 	/** @brief Interrupt is asserted on a signal edge. */
 	IRQ_TRIGGER_EDGE,
 
