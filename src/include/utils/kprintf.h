@@ -13,7 +13,6 @@
 #define UTILS_KPRINTF_H
 
 /**
- * @struct serial_t
  * @brief Hardware abstraction layer for serial I/O operations.
  *
  * This structure maps generic I/O requests to hardware-specific
