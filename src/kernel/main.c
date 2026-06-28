@@ -237,8 +237,12 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 
 	setup_system_timer(fdt);
 
-	while (true) {
+	uint32_t ticks = 0;
+	const uint32_t max_num_of_ticks = 5;
+
+	while (ticks < max_num_of_ticks) {
 		asm volatile("wfi");
+		ticks++;
 	}
 
 	exit(0);
