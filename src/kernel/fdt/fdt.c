@@ -14,8 +14,10 @@
 
 #include "utils/kprintf.h"
 
+#include <stddef.h>
 #include <libfdt.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 bool check_fdt(const void *ptr)
 {
@@ -132,6 +134,9 @@ int get_mem(const void *fdt, Memory_map_t *mmap)
 
 int get_intc_node_offset(const void *fdt)
 {
+	if (!fdt) {
+		return -FDT_ERR_INTERNAL;
+	}
 	return fdt_node_offset_by_prop_value(fdt, -1, "interrupt-controller",
 					     NULL, 0);
 }
@@ -143,6 +148,10 @@ bool fdt_is_error(int offset)
 
 char *get_compatible_string(const void *fdt, int node_offset)
 {
+	if (!fdt || fdt_is_error(node_offset)) {
+		return NULL;
+	}
+
 	int len;
 	const char *compat = fdt_getprop(fdt, node_offset, "compatible", &len);
 	if (!compat || len <= 0) {
@@ -153,6 +162,10 @@ char *get_compatible_string(const void *fdt, int node_offset)
 
 bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map)
 {
+	if (!fdt || fdt_is_error(node_offset) || reg_map == NULL) {
+		return -FDT_ERR_INTERNAL;
+	}
+
 	reg_map->count = 0;
 
 	int addr_cells = fdt_address_cells(fdt, node_offset);
@@ -189,4 +202,94 @@ bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map)
 	}
 
 	return true;
+}
+
+int get_intr_property(const void *fdt, int node_offset,
+		      Interrupt_t *out_intr_array, size_t out_intr_array_len)
+{
+	if (!fdt || fdt_is_error(node_offset) || out_intr_array == NULL) {
+		return -FDT_ERR_INTERNAL;
+	}
+
+	int len;
+	const fdt32_t *intr = fdt_getprop(fdt, node_offset, "interrupts", &len);
+	if (!intr || len <= 0) {
+		return -FDT_ERR_NOTFOUND;
+	}
+
+	/* The cell layout of "interrupts" is defined by whichever node owns
+	 * "#interrupt-cells" — found by walking up to the nearest ancestor
+	 * with an explicit "interrupt-parent", per the devicetree spec's
+	 * inheritance rule. Fall back to the default interrupt controller
+	 * if no node in the chain specifies one.
+	 */
+	int intr_parent_node = -1;
+	for (int ancestor = node_offset; ancestor >= 0;
+	     ancestor = fdt_parent_offset(fdt, ancestor)) {
+		int phandle_len;
+		const fdt32_t *phandle_prop = fdt_getprop(
+			fdt, ancestor, "interrupt-parent", &phandle_len);
+		if (phandle_prop && phandle_len == (int)sizeof(fdt32_t)) {
+			intr_parent_node = fdt_node_offset_by_phandle(
+				fdt, fdt32_to_cpu(*phandle_prop));
+			break;
+		}
+	}
+	if (fdt_is_error(intr_parent_node)) {
+		intr_parent_node = get_intc_node_offset(fdt);
+	}
+	if (fdt_is_error(intr_parent_node)) {
+		kprintf("FDT Error: could not resolve an interrupt-parent for node\n");
+		return -FDT_ERR_NOTFOUND;
+	}
+
+	int cells_len;
+	const fdt32_t *cells_prop = fdt_getprop(fdt, intr_parent_node,
+						"#interrupt-cells", &cells_len);
+	if (!cells_prop || cells_len != (int)sizeof(fdt32_t)) {
+		kprintf("FDT Error: interrupt-parent is missing \"#interrupt-cells\"\n");
+		return -FDT_ERR_BADNCELLS;
+	}
+	uint32_t cells_per_entry = fdt32_to_cpu(*cells_prop);
+
+	/* Interrupt_t models the ARM GIC <type, number, flags> layout only;
+	 * reject anything else rather than silently misinterpreting it.
+	 */
+	if (cells_per_entry != 3) {
+		kprintf("FDT Error: unsupported #interrupt-cells value %u\n",
+			cells_per_entry);
+		return -FDT_ERR_BADNCELLS;
+	}
+
+	size_t entry_size = (size_t)cells_per_entry * sizeof(fdt32_t);
+	if ((size_t)len % entry_size != 0) {
+		kprintf("FDT Error: \"interrupts\" length %d is not a multiple of entry size %zu\n",
+			len, entry_size);
+		return -FDT_ERR_BADSTATE;
+	}
+
+	size_t num_entries = (size_t)len / entry_size;
+	size_t count = num_entries < out_intr_array_len ? num_entries :
+							  out_intr_array_len;
+
+	for (size_t i = 0; i < count; i++) {
+		const fdt32_t *entry = intr + (i * cells_per_entry);
+
+		uint32_t type = fdt32_to_cpu(entry[0]);
+		uint32_t intr_num = fdt32_to_cpu(entry[1]);
+		uint32_t flags = fdt32_to_cpu(entry[2]);
+
+		out_intr_array[i].type = (Irq_type_t)type;
+		out_intr_array[i].id = intr_num;
+		out_intr_array[i].trigger = (flags & 0x4) ?
+						    IRQ_TRIGGER_LEVEL_HIGH :
+						    IRQ_TRIGGER_EDGE;
+	}
+
+	if (count < num_entries) {
+		kprintf("FDT Warning: \"interrupts\" has %lu entries but only %lu fit in out_intr_array, truncating\n",
+			(uint64_t)num_entries, (uint64_t)count);
+	}
+
+	return (int)count;
 }
