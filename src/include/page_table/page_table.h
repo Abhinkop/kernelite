@@ -406,7 +406,7 @@ enum sh_values {
  * @struct page_table_t
  * @brief Represents a single page table level (512 entries).
  */
-typedef struct {
+typedef struct page_table_t {
 	/** Array of page table entries. */
 	page_table_entry_t entries[PTRS_PER_TABLE];
 } page_table_t;

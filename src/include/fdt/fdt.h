@@ -25,7 +25,7 @@
 /**
  * @brief Represents a single physical memory span.
  */
-typedef struct {
+typedef struct memory_region_t {
 	/** @brief Start physical address of the region. */
 	phy_addr base;
 
@@ -36,7 +36,7 @@ typedef struct {
 /**
  * @brief Container for the system physical memory layout.
  */
-typedef struct {
+typedef struct memory_map_t {
 	/** @brief Array of discovered regions. */
 	memory_region_t regions[MAX_MEM_REGIONS];
 
@@ -71,7 +71,7 @@ typedef enum {
  * @brief Describes a single interrupt as parsed from an FDT "interrupts"
  * specifier.
  */
-typedef struct {
+typedef struct interrupt_t {
 	/** @brief Interrupt category (SPI or PPI). */
 	irq_type_t type;
 

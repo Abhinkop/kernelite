@@ -40,7 +40,7 @@ static handler_data_t tick_handler;
 /**
  * @brief CNTP_CTL_EL0 (EL1 Physical Timer Control Register) layout.
  */
-typedef union {
+typedef union cntp_ctl_el0_t {
 	/** @brief Raw 64-bit register value, for use with READ/WRITE_SYS_REG.
 	 */
 	uint64_t raw;
