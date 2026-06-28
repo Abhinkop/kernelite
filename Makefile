@@ -75,6 +75,7 @@ SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/mem_layout/mem_layout.c \
 		  $(SRC_DIR)/kernel/mmu/mmu.c \
 		  $(SRC_DIR)/kernel/page_table/page_table.c \
+		  $(SRC_DIR)/kernel/timer/timer.c \
 		  $(SRC_DIR)/kernel/utils/kprintf.c \
 		  $(SRC_DIR)/kernel/utils/string.c \
 		  $(SRC_DIR)/kernel/utils/utils.c
