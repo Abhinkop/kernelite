@@ -321,7 +321,7 @@ int main(const uint64_t *boot_args_ptr)
 	}
 
 	// Map uart to high virtual address.
-	uart_mapped = map_page(get_kernel_map_root(), uart0_base + kernel_base,
+	uart_mapped = map_page(get_kernel_map_root(), uart0_base + KERNEL_BASE,
 			       uart0_base,
 			       (page_permissions_t){ .execute = false,
 						     .read = true,

@@ -22,10 +22,10 @@ typedef uint64_t virt_addr;
 /** @brief Memory layout base addresses. */
 enum mem_layout_bases {
 	/** Start of user space (0x0) */
-	user_space = 0x0000000000000000UL,
+	USER_SPACE = 0x0000000000000000UL,
 
 	/** Base of kernel space */
-	kernel_base = 0xFFFF000000000000UL,
+	KERNEL_BASE = 0xFFFF000000000000UL,
 };
 
 /** @brief Update the kernel base virtual address. */

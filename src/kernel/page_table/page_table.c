@@ -768,7 +768,7 @@ bool setup_kernel_map(memory_map_t *const mmap)
 			// and give them different permissions (e.g., RX for
 			// code and RW for data). For this example, we
 		}
-		if (!map_page(kernel_map_root, cur_phy_addr + kernel_base,
+		if (!map_page(kernel_map_root, cur_phy_addr + KERNEL_BASE,
 			      cur_phy_addr, perms, normal)) {
 			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
 				cur_phy_addr);
