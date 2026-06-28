@@ -11,11 +11,11 @@
  */
 
 #include "utils/utils.h"
-#include "utils/kprintf.h"
 #include "allocator/page_allocator.h"
-#include "linker/symbols.h"
-#include "fdt/fdt.h"
 #include "asm/asm_helper.h"
+#include "fdt/fdt.h"
+#include "linker/symbols.h"
+#include "utils/kprintf.h"
 
 #include <libfdt.h>
 

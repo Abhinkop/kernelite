@@ -15,9 +15,9 @@
 #include "mem_layout/mem_layout.h"
 #include "utils/kprintf.h"
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /** @brief Maximum number of distinct memory regions the kernel will track. */
 #define MAX_MEM_REGIONS 16

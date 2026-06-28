@@ -13,13 +13,13 @@
 
 #include "allocator/page_allocator.h"
 
-#include "utils/kprintf.h"
-#include "linker/symbols.h"
 #include "linker/linker_defines.h"
+#include "linker/symbols.h"
+#include "utils/kprintf.h"
 
-#include <stdint.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /** @brief Size of the bitmap in bytes. */
 #define BITMAP_SIZE LINKER_BITMAP_SIZE

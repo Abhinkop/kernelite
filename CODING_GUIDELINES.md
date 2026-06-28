@@ -34,10 +34,13 @@ parameters, for awareness:
 | Control-statement brace | **Same line** (`if (...) {`) |
 | Pointer alignment | **Right** (`char *p`, not `char* p`) |
 | Short ifs/loops/functions on one line | **Disallowed** |
-| `SortIncludes` | **false** — include order is manual (see §4) |
+| `SortIncludes` | **true** — includes are sorted **within each block** |
+| `IncludeBlocks` | **Preserve** — blank-line-separated groups are kept apart |
 
-Because `SortIncludes` is off, clang-format will **not** fix include ordering for
-you. That is on you (§4).
+clang-format sorts includes **alphabetically inside each blank-line-separated
+block**, but never merges the blocks. You are responsible for the *grouping*
+(own header / project / system) and the blank lines between them; clang-format
+then orders the entries inside each group for you (see §4).
 
 ---
 
@@ -153,7 +156,7 @@ Every file follows this top-to-bottom order. Keep it.
 
 1. File-level Doxygen comment (`@file`, `@brief`, `@author`, `@date`)
 2. Header guard (`.h` only)
-3. `#include "own_name.h"` first (`.c` only — the file's own header)
+3. `#include "own_name.h"` first, in its own group (`.c` only — the file's own header)
 4. Other project includes: `#include "..."`
 5. System includes: `#include <...>`
 6. `#define`s
@@ -162,23 +165,34 @@ Every file follows this top-to-bottom order. Keep it.
 9. `static` (local) functions
 10. Non-`static` (exported) functions
 
-Include grouping example:
+### Include grouping
+
+Includes are organized into up to **three blank-line-separated groups**, in this
+order:
+
+1. The file's **own header** (`.c` only) — alone in the first group.
+2. Other **project** headers (`"..."`).
+3. **System** headers (`<...>`).
+
+Within each group, entries are **alphabetical** — and clang-format
+(`SortIncludes: true`) enforces that for you, so don't hand-order inside a group.
+What you *do* control is the grouping and the blank lines between groups
+(`IncludeBlocks: Preserve` means clang-format won't merge or reorder the groups).
+Keeping the own header in its **own** group is what protects it from being sorted
+down into the alphabetical project block.
 
 ```c
 /* src/kernel/allocator/page_allocator.c:14 */
-#include "allocator/page_allocator.h"   /* own header first */
+#include "allocator/page_allocator.h"   /* own header — its own group */
 
-#include "utils/kprintf.h"              /* other project headers */
+#include "linker/linker_defines.h"      /* project headers, A→Z */
 #include "linker/symbols.h"
-#include "linker/linker_defines.h"
+#include "utils/kprintf.h"
 
-#include <stdint.h>                     /* system headers last */
+#include <stdbool.h>                     /* system headers, A→Z */
 #include <stddef.h>
-#include <stdbool.h>
+#include <stdint.h>
 ```
-
-Blank lines separate the three include groups. Since `SortIncludes` is off,
-clang-format preserves this exactly as written.
 
 ---
 

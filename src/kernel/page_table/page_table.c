@@ -12,11 +12,11 @@
 #include "page_table/page_table.h"
 
 #include "allocator/page_allocator.h"
-#include "utils/kprintf.h"
-#include "linker/symbols.h"
-#include "linker/linker_defines.h"
 #include "fdt/fdt.h"
+#include "linker/linker_defines.h"
+#include "linker/symbols.h"
 #include "mem_layout/mem_layout.h"
+#include "utils/kprintf.h"
 
 #include <stdbool.h>
 #include <stddef.h>

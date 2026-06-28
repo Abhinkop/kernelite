@@ -11,8 +11,8 @@
 
 #include "utils/kprintf.h"
 
-#include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 /** @brief Global serial console. */
 static serial_t serial_console;

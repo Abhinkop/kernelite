@@ -14,9 +14,9 @@
 
 #include "utils/kprintf.h"
 
-#include <stddef.h>
 #include <libfdt.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 bool check_fdt(const void *ptr)

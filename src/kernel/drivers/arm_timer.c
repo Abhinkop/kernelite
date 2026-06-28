@@ -8,9 +8,9 @@
 
 #include "arm_timer.h"
 
-#include "utils/kprintf.h"
-#include "fdt/fdt.h"
 #include "asm/asm_helper.h"
+#include "fdt/fdt.h"
+#include "utils/kprintf.h"
 
 #include <stdbool.h>
 #include <stddef.h>

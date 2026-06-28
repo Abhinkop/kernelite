@@ -9,23 +9,23 @@
  * @date 2026-04-25
  */
 
-#include "drivers/uart.h"
-#include "page_table/page_table.h"
-#include "utils/kprintf.h"
-#include "fdt/fdt.h"
-#include "utils/utils.h"
-#include "linker/symbols.h"
-#include "mmu/mmu.h"
-#include "mem_layout/mem_layout.h"
-#include "asm/asm_helper.h"
 #include "allocator/page_allocator.h"
+#include "asm/asm_helper.h"
+#include "drivers/uart.h"
+#include "fdt/fdt.h"
 #include "icu/icu.h"
+#include "linker/symbols.h"
+#include "mem_layout/mem_layout.h"
+#include "mmu/mmu.h"
+#include "page_table/page_table.h"
 #include "timer/timer.h"
+#include "utils/kprintf.h"
+#include "utils/utils.h"
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdint.h>
 #include <libfdt.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #ifdef RUN_TESTS
 

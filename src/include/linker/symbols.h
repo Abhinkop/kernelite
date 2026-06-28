@@ -13,8 +13,8 @@
 
 #include "page_table/page_table.h"
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /**
  * @brief Start of the identity page map directory pages.

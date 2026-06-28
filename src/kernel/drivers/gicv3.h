@@ -14,8 +14,8 @@
 
 #include "icu/icu.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @brief Initialize the ARM GICv3 interrupt controller.

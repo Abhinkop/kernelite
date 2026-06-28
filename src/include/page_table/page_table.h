@@ -12,12 +12,12 @@
 #ifndef PAGE_TABLE_PAGE_TABLE_H
 #define PAGE_TABLE_PAGE_TABLE_H
 
-#include "linker/linker_defines.h"
 #include "fdt/fdt.h"
+#include "linker/linker_defines.h"
 #include "mem_layout/mem_layout.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @brief Size of each memory page in bytes.

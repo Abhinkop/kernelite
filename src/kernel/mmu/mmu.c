@@ -10,9 +10,9 @@
 
 #include "mmu/mmu.h"
 
-#include "utils/kprintf.h"
-#include "mem_layout/mem_layout.h"
 #include "asm/asm_helper.h"
+#include "mem_layout/mem_layout.h"
+#include "utils/kprintf.h"
 
 #include <stdint.h>
 

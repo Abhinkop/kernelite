@@ -12,12 +12,12 @@
 #ifndef ALLOCATOR_PAGE_ALLOCATOR_H
 #define ALLOCATOR_PAGE_ALLOCATOR_H
 
-#include "page_table/page_table.h"
 #include "mem_layout/mem_layout.h"
+#include "page_table/page_table.h"
 
-#include <stdint.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /**
  * @brief Initializes the page allocator with a specific region of memory.

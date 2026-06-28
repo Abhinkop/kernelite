@@ -12,20 +12,20 @@
 
 #include "gicv3.h"
 
-#include "utils/kprintf.h"
-#include "utils/utils.h"
+#include "asm/asm_helper.h"
 #include "fdt/fdt.h"
-#include "utils/string.h"
-#include "page_table/page_table.h"
+#include "icu/icu.h"
 #include "linker/symbols.h"
 #include "mem_layout/mem_layout.h"
-#include "asm/asm_helper.h"
-#include "icu/icu.h"
+#include "page_table/page_table.h"
+#include "utils/kprintf.h"
+#include "utils/string.h"
+#include "utils/utils.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <assert.h>
 
 /** @brief Maximum number of interrupt INTIDs supported by the dispatch table.
  *  Covers SGIs (0-15), PPIs (16-31), and SPIs (32-1019). INTIDs 1020-1023
