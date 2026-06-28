@@ -13,15 +13,11 @@
 #define ALLOCATOR_PAGE_ALLOCATOR_H
 
 #include "page_table/page_table.h"
-#include "linker/linker_defines.h"
 #include "mem_layout/mem_layout.h"
 
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-
-/** @brief Size of the bitmap in bytes. */
-#define BITMAP_SIZE LINKER_BITMAP_SIZE
 
 /**
  * @brief Initializes the page allocator with a specific region of memory.

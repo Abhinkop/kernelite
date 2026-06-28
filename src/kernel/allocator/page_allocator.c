@@ -15,10 +15,14 @@
 
 #include "utils/kprintf.h"
 #include "linker/symbols.h"
+#include "linker/linker_defines.h"
 
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+
+/** @brief Size of the bitmap in bytes. */
+#define BITMAP_SIZE LINKER_BITMAP_SIZE
 
 /** @brief Start of the managed memory region */
 static uint8_t *mem_base = NULL;
