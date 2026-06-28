@@ -298,7 +298,7 @@ int main(const uint64_t *boot_args_ptr)
 	kprintf("fdt adrr = 0x%lx size = 0x%x\n", (virt_addr)fdt_addr,
 		fdt_totalsize(fdt_addr));
 
-	Memory_map_t mmap;
+	memory_map_t mmap;
 	if (get_mem(fdt_addr, &mmap) < 0) {
 		kprintf("Failed to parse memory map from FDT. Halting.\n");
 		return 1;

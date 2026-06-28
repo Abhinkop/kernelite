@@ -163,7 +163,7 @@ bool setup_arm64_sys_timer(const void *fdt, int node_offset,
 		return false;
 	}
 
-	Interrupt_t intrs[MAX_TIMER_INTERRUPTS];
+	interrupt_t intrs[MAX_TIMER_INTERRUPTS];
 
 	int num_intrs = get_intr_property(fdt, node_offset, intrs,
 					  MAX_TIMER_INTERRUPTS);

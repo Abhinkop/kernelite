@@ -48,7 +48,7 @@ bool check_fdt(const void *ptr)
 }
 
 // NOLINTBEGIN(readability-function-cognitive-complexity)
-int get_mem(const void *fdt, Memory_map_t *mmap)
+int get_mem(const void *fdt, memory_map_t *mmap)
 {
 	if (!fdt || !mmap) {
 		return -FDT_ERR_INTERNAL;
@@ -160,7 +160,7 @@ char *get_compatible_string(const void *fdt, int node_offset)
 	return (char *)compat;
 }
 
-bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map)
+bool get_reg_property(const void *fdt, int node_offset, memory_map_t *reg_map)
 {
 	if (!fdt || fdt_is_error(node_offset) || reg_map == NULL) {
 		return -FDT_ERR_INTERNAL;
@@ -205,7 +205,7 @@ bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map)
 }
 
 int get_intr_property(const void *fdt, int node_offset,
-		      Interrupt_t *out_intr_array, size_t out_intr_array_len)
+		      interrupt_t *out_intr_array, size_t out_intr_array_len)
 {
 	if (!fdt || fdt_is_error(node_offset) || out_intr_array == NULL) {
 		return -FDT_ERR_INTERNAL;
@@ -252,7 +252,7 @@ int get_intr_property(const void *fdt, int node_offset,
 	}
 	uint32_t cells_per_entry = fdt32_to_cpu(*cells_prop);
 
-	/* Interrupt_t models the ARM GIC <type, number, flags> layout only;
+	/* interrupt_t models the ARM GIC <type, number, flags> layout only;
 	 * reject anything else rather than silently misinterpreting it.
 	 */
 	if (cells_per_entry != 3) {
@@ -279,7 +279,7 @@ int get_intr_property(const void *fdt, int node_offset,
 		uint32_t intr_num = fdt32_to_cpu(entry[1]);
 		uint32_t flags = fdt32_to_cpu(entry[2]);
 
-		out_intr_array[i].type = (Irq_type_t)type;
+		out_intr_array[i].type = (irq_type_t)type;
 		out_intr_array[i].id = intr_num;
 		out_intr_array[i].trigger = (flags & 0x4) ?
 						    IRQ_TRIGGER_LEVEL_HIGH :

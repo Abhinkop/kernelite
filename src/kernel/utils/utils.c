@@ -87,7 +87,7 @@ bool setup_page_allocator(const void *fdt_addr)
 		return false;
 	}
 
-	Memory_map_t mmap;
+	memory_map_t mmap;
 	// NOLINTNEXTLINE(*-int-to-ptr)
 	if (get_mem(fdt_addr, &mmap) < 0) {
 		kprintf("Failed to parse memory map from FDT. Halting.\n");

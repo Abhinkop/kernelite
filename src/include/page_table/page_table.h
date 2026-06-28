@@ -455,6 +455,6 @@ bool setup_kernel_id_map();
  * memory layout.
  * @return true on success, false on failure (e.g., if allocation fails).
  */
-bool setup_kernel_map(Memory_map_t *mmap);
+bool setup_kernel_map(memory_map_t *mmap);
 
 #endif /* PAGE_TABLE_PAGE_TABLE_H */

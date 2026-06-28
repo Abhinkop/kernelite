@@ -1639,7 +1639,7 @@ void gicv3_init(const void *fdt)
 		return;
 	}
 
-	Memory_map_t reg_map;
+	memory_map_t reg_map;
 	if (!get_reg_property(fdt, intc_node, &reg_map)) {
 		kprintf("Failed to retrieve reg property for interrupt controller\n");
 		return;

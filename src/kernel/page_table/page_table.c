@@ -724,7 +724,7 @@ bool setup_kernel_id_map(void)
 	return true;
 }
 
-bool setup_kernel_map(Memory_map_t *const mmap)
+bool setup_kernel_map(memory_map_t *const mmap)
 {
 	// Todo: In the future, we can extend this function to support multiple
 	// memory.
