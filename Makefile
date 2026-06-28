@@ -179,6 +179,16 @@ run: $(TARGET)
 	-cpu cortex-a57 -nographic -kernel $(TARGET) -no-reboot \
 	-semihosting
 
+run-as-gdb-server: $(TARGET)
+	@echo "Running QEMU..."
+	$(VERBOSE_PREFIX)qemu-system-aarch64 -machine virt,gic-version=3 \
+	-cpu cortex-a57 -nographic -kernel $(TARGET) -no-reboot \
+	-semihosting -s -S &
+
+kill-gdb-server:
+	@echo "Killing Qemu"
+	$(VERBOSE_PREFIX)sudo kill -9 $$(lsof -t -i :1234)
+
 format: $(SRCS_C) $(SRCS_H) $(TEST_SRCS)
 	@echo "Formatting source files..."
 	$(VERBOSE_PREFIX)clang-format -i $^
