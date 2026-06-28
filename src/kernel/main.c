@@ -254,8 +254,7 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
  * Called from primary_entry (boot.s) after the stack has been initialized
  * and the BSS section has been cleared.
  * @note On success this function never returns: it hands off to
- * high_half_main(), which parks the core in an infinite wfi loop. It only
- * returns on early initialization failure.
+ * high_half_main()
  * @param boot_args_ptr Pointer to an array containing the bootloader arguments
  * passed in registers x0-x3.
  * @return 1 on initialization failure (id map setup, UART mapping, or FDT
