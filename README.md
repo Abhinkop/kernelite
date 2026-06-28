@@ -3,7 +3,7 @@
 [![Build](https://github.com/Abhinkop/kernelite/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Abhinkop/kernelite/actions/workflows/build.yml?query=branch%3Amain)
 [![Docs](https://img.shields.io/badge/docs-live-blue?style=flat)](https://abhinkop.github.io/kernelite/)
 
-![Kernelite](docs/kernelite_logo.svg)
+![](docs/kernelite_logo.svg)
 
 **Kernelite** is a minimalist, educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction.
 
@@ -18,15 +18,19 @@
 * **src/boot/**: Kernel entry point — EL setup and initial CPU handoff from the bootloader.
 * **src/kernel/**: Core kernel subsystems.
     * **allocator/**: Physical page allocator.
-    * **drivers/**: Hardware drivers (PL011 UART, GICv3 interrupt controller).
+    * **drivers/**: Hardware drivers.
+        * PL011 UART
+        * GICv3 interrupt controller
+        * ARM generic timer
     * **icu/**: Interrupt controller unit abstraction — dispatches to the matching driver (currently GICv3) based on the FDT's interrupt-controller node.
     * **error/**: Panic and error string handling.
     * **exception_handling/**: AArch64 exception vector table and fault/IRQ handlers (ESR_EL1 decoding, ICU dispatch).
     * **exit/**: Kernel exit/halt path.
-    * **fdt/**: Flattened Device Tree parser.
+    * **fdt/**: Flattened Device Tree parser wrapper.
     * **mem_layout/**: Kernel base VA and VA/PA translation helpers.
     * **mmu/**: MMU setup — MAIR, TCR, SCTLR_EL1, `enable_mmu()`.
     * **page_table/**: AArch64 page table descriptor construction and mapping.
+    * **timer/**: System timer abstraction — dispatches to the matching driver (currently the ARM generic timer) based on the FDT's `compatible` string.
     * **utils/**: `kprintf`, string utilities.
     * **main.c**: Kernel `main()` entry.
 * **src/include/**: Public headers mirroring the `src/kernel/` layout, plus the linker script (`linker/linker.lds`).
@@ -48,6 +52,10 @@ make all
 If you already cloned without submodules, run:
 ```bash
 git submodule update --init --recursive
+```
+or
+```
+make submodules
 ```
 
 ### 🧑‍💻 Development Container
@@ -84,6 +92,8 @@ The project is designed to be built using: **Make**
 Below are the main `make` targets supported by this repository:
 * **make all**: Build the kernel image, the `tools/register_decoder` utility, the Doxygen docs, and run `clang-tidy`.
 * **make run**: Build the kernel and launch it under QEMU with semihosting enabled.
+* **make run-as-gdb-server**: Build the kernel and launch it under QEMU, paused with a GDB server listening on `:1234`.
+* **make kill-gdb-server**: Kill the QEMU instance started by `make run-as-gdb-server`.
 * **make docs**: Generate Doxygen documentation into `build/docs/html`.
 * **make clean-docs**: Remove generated Doxygen documentation files.
 * **make clean**: Clean the build output directory and remove generated binaries.
@@ -102,3 +112,11 @@ qemu-system-aarch64 -machine virt,gic-version=3 \
 -semihosting
 ```
 Or simply run `make run`, which builds the kernel and launches it with the same QEMU invocation.
+
+### Debugging
+To debug the kernel under GDB:
+```bash
+make clean && make run-as-gdb-server DEBUG=1
+```
+This starts QEMU paused, with a GDB server listening on `:1234`. Attach to it with `gdb-multiarch`, then run `make kill-gdb-server` once finished to stop the QEMU instance.
+`make` doesn't track build flags, only file timestamps, so the `clean` is required — otherwise a binary already built without `DEBUG=1` (stripped, no debug symbols) will be reused as-is.
