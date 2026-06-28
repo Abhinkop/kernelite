@@ -20,6 +20,7 @@
 #include "asm/asm_helper.h"
 #include "allocator/page_allocator.h"
 #include "icu/icu.h"
+#include "timer/timer.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -91,7 +92,7 @@ static void uart0_putchar(char chr)
  * @param intid SGI INTID to generate (0-15). Values outside this
  *              range are invalid and will be rejected.
  */
-void trigger_sgi(uint32_t intid)
+static void trigger_sgi(uint32_t intid)
 {
 	if (intid > 15) {
 		kprintf("Error: invalid SGI INTID %u — SGIs are INTIDs 0-15 only\n",
@@ -116,9 +117,47 @@ void trigger_sgi(uint32_t intid)
  * @param int_id Pointer to the uint32_t INTID, passed through as
  *               private_data on each invocation.
  */
-void sgi_handler(void *int_id)
+static void sgi_handler(void *int_id)
 {
 	kprintf("Received int id = %u\n", *((uint32_t *)int_id));
+}
+
+/**
+ * @brief Test handler invoked on every system timer tick.
+ *
+ * Registered as the tick handler via setup_sys_timer() to verify that the
+ * timer driver correctly fires once per configured period.
+ *
+ * @param priv Unused; registered with NULL private data.
+ */
+static void timer_tick_handler(void *priv)
+{
+	(void)priv;
+
+	kprintf("Timer tick handler called\n");
+
+	uint64_t count = 0;
+	READ_SYS_REG(CNTPCT_EL0, count);
+	kprintf("CNTPCT_EL0 = %lu\n", count);
+}
+
+/**
+ * @brief Configure the system timer to tick once per second.
+ * @param fdt Pointer to the Flattened Device Tree (FDT) blob, which may be
+ *            used to discover timer properties and configuration.
+ */
+static void setup_system_timer(const void *fdt)
+{
+	const uint64_t period_ms = 1000;
+
+	handler_data_t handler = {
+		.handler = timer_tick_handler,
+		.private_data = NULL,
+	};
+
+	if (!setup_sys_timer(fdt, period_ms, handler)) {
+		kprintf("Error setting up system timer\n");
+	}
 }
 
 /**
@@ -180,7 +219,9 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 	kprintf("Current PC: 0x%lx\n", current_pc);
 
 	// NOLINTNEXTLINE(*-int-to-ptr)
-	icu_init((void *)pa_to_va(fdt_addr));
+	const void *fdt = (const void *)pa_to_va(fdt_addr);
+
+	icu_init(fdt);
 
 	pl011_register_handler(&uart0);
 
@@ -194,6 +235,16 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 	icu_register_irq(intid, temp);
 	trigger_sgi(11);
 
+	setup_system_timer(fdt);
+
+	uint32_t ticks = 0;
+	const uint32_t max_num_of_ticks = 5;
+
+	while (ticks < max_num_of_ticks) {
+		asm volatile("wfi");
+		ticks++;
+	}
+
 	exit(0);
 }
 
@@ -203,8 +254,7 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
  * Called from primary_entry (boot.s) after the stack has been initialized
  * and the BSS section has been cleared.
  * @note On success this function never returns: it hands off to
- * high_half_main(), which parks the core in an infinite wfi loop. It only
- * returns on early initialization failure.
+ * high_half_main()
  * @param boot_args_ptr Pointer to an array containing the bootloader arguments
  * passed in registers x0-x3.
  * @return 1 on initialization failure (id map setup, UART mapping, or FDT

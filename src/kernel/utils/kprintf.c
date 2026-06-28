@@ -39,7 +39,7 @@ static void itoa(unsigned long num, int base, char *buf)
 	do {
 		digit = num % base;
 		// NOLINTNEXTLINE(bugprone-narrowing-conversions)
-		*ptr++ = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+		*ptr++ = (digit < 10UL) ? (digit + '0') : (digit - 10 + 'a');
 	} while ((num /= base) > 0);
 
 	*ptr = '\0';
@@ -92,12 +92,11 @@ int vprintf(const char *format, va_list args)
 		}
 
 		ptr++; // Skip '%'
+		if (*ptr == 'l') {
+			ptr++;
+		}
 
 		switch (*ptr) {
-		case 'l':
-			ptr++;
-			/* fallthrough: handle 'lx' (long hex) as 'x' */
-			__attribute__((fallthrough));
 		case 'x':
 		case 'p': {
 			if (*ptr == 'p') {

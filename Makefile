@@ -64,6 +64,7 @@ TARGET = $(BUILD_DIR)/images/$(IMG_NAME)
 SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/exit/exit.c \
 		  $(SRC_DIR)/kernel/main.c \
+		  $(SRC_DIR)/kernel/drivers/arm_timer.c \
 		  $(SRC_DIR)/kernel/drivers/gicv3.c \
 		  $(SRC_DIR)/kernel/drivers/uart.c \
 		  $(SRC_DIR)/kernel/error/panic.c \
@@ -74,6 +75,7 @@ SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/mem_layout/mem_layout.c \
 		  $(SRC_DIR)/kernel/mmu/mmu.c \
 		  $(SRC_DIR)/kernel/page_table/page_table.c \
+		  $(SRC_DIR)/kernel/timer/timer.c \
 		  $(SRC_DIR)/kernel/utils/kprintf.c \
 		  $(SRC_DIR)/kernel/utils/string.c \
 		  $(SRC_DIR)/kernel/utils/utils.c
@@ -178,6 +180,16 @@ run: $(TARGET)
 	$(VERBOSE_PREFIX)qemu-system-aarch64 -machine virt,gic-version=3 \
 	-cpu cortex-a57 -nographic -kernel $(TARGET) -no-reboot \
 	-semihosting
+
+run-as-gdb-server: $(TARGET)
+	@echo "Running QEMU..."
+	$(VERBOSE_PREFIX)qemu-system-aarch64 -machine virt,gic-version=3 \
+	-cpu cortex-a57 -nographic -kernel $(TARGET) -no-reboot \
+	-semihosting -s -S &
+
+kill-gdb-server:
+	@echo "Killing Qemu"
+	$(VERBOSE_PREFIX)sudo kill -9 $$(lsof -t -i :1234)
 
 format: $(SRCS_C) $(SRCS_H) $(TEST_SRCS)
 	@echo "Formatting source files..."

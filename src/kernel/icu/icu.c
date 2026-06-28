@@ -21,7 +21,7 @@
 #include "../drivers/gicv3.h"
 #include <stdint.h>
 
-void icu_init(void *fdt)
+void icu_init(const void *fdt)
 {
 	if (!fdt || !check_fdt(fdt)) {
 		kprintf("Invalid FDT pointer\n");
