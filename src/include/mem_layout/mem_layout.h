@@ -8,8 +8,8 @@
  * @date 2026-05-25
  */
 
-#ifndef MEM_LAYOUT_H
-#define MEM_LAYOUT_H
+#ifndef MEM_LAYOUT_MEM_LAYOUT_H
+#define MEM_LAYOUT_MEM_LAYOUT_H
 
 #include <stdint.h>
 
@@ -45,4 +45,4 @@ phy_addr va_to_pa(virt_addr v_addr);
  */
 virt_addr pa_to_va(phy_addr p_addr);
 
-#endif /* MEM_LAYOUT_H */
+#endif /* MEM_LAYOUT_MEM_LAYOUT_H */
