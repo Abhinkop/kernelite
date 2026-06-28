@@ -60,14 +60,14 @@ typedef struct page_permissions_t {
  *  The kernel must program MAIR_EL1 so that each index carries the correct
  *  attribute byte before the MMU is enabled.
  */
-enum mem_type_t {
+typedef enum mem_type_t {
 	/** Index 0 — MAIR_EL1[7:0]:  0x00  Device-nGnRnE (non-gathering,
 	   non-reordering, no early write-ack). */
-	device = 0,
+	DEVICE = 0,
 	/** Index 1 — MAIR_EL1[15:8]: 0xFF  Normal Inner/Outer Write-Back
 	   Read/Write-Allocate Cacheable. */
-	normal,
-};
+	NORMAL,
+} mem_type_t;
 
 /** @brief TABLE DESCRIPTOR LAYOUT (Lookup levels 0, 1, or 2).
  *
@@ -428,14 +428,14 @@ typedef struct page_table_t {
  *                 translated into the AP[2:1], PXN, and UXN hardware fields.
  * @param mem_typ  Memory type index (@ref mem_type_t) written into
  * AttrIndx[2:0] of the leaf descriptor, selecting the MAIR_EL1 attribute byte
- *                 (e.g. @ref device → 0x00 Device-nGnRnE,
- *                       @ref normal → 0xFF Normal WB-RWA Cacheable).
+ *                 (e.g. @ref DEVICE → 0x00 Device-nGnRnE,
+ *                       @ref NORMAL → 0xFF Normal WB-RWA Cacheable).
  * @return true  Mapping installed successfully.
  * @return false @p root was NULL, @p v_addr/@p phy_addr were not 4 KB
  * aligned, or allocation of an intermediate table failed.
  */
 bool map_page(page_table_t *root, virt_addr v_addr, phy_addr phy_addr,
-	      page_permissions_t perms, enum mem_type_t mem_typ);
+	      page_permissions_t perms, mem_type_t mem_typ);
 
 /**
  * @brief Dump the memory map for debugging.

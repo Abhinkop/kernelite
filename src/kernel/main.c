@@ -289,7 +289,7 @@ int main(const uint64_t *boot_args_ptr)
 					       .read = true,
 					       .write = true,
 					       .user_accessible = false },
-			 device);
+			 DEVICE);
 	if (!uart_mapped) {
 		kprintf("Error while id mapping uart\n");
 		return 1;
@@ -327,7 +327,7 @@ int main(const uint64_t *boot_args_ptr)
 						     .read = true,
 						     .write = true,
 						     .user_accessible = false },
-			       device);
+			       DEVICE);
 	if (!uart_mapped) {
 		kprintf("Error while mapping uart\n");
 		return 1;

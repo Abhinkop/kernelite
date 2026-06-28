@@ -1007,14 +1007,14 @@ static inline void enable_grp1_interrupts(void)
  * @param perms   Page permissions to apply to every mapped page.
  * @param mem_type  Memory type index (@ref mem_type_t) written into
  * AttrIndx[2:0] of the leaf descriptor, selecting the MAIR_EL1 attribute byte
- *                 (e.g. @ref device → 0x00 Device-nGnRnE,
- *                       @ref normal → 0xFF Normal WB-RWA Cacheable).
+ *                 (e.g. @ref DEVICE → 0x00 Device-nGnRnE,
+ *                       @ref NORMAL → 0xFF Normal WB-RWA Cacheable).
  * @return true on success, false if alignment checks fail or any page
  *         mapping fails.
  */
 static inline bool map_continuous(phy_addr p_base, virt_addr v_base,
 				  size_t size, page_permissions_t perms,
-				  enum mem_type_t mem_type)
+				  mem_type_t mem_type)
 {
 	if (p_base % PAGE_SIZE != 0) {
 		kprintf("Error: p_base 0x%lx is not 4KB aligned\n", p_base);
@@ -1663,7 +1663,7 @@ void gicv3_init(const void *fdt)
 							  .execute = false,
 							  .user_accessible =
 								  false },
-				    device)) {
+				    DEVICE)) {
 			kprintf("Failed to map ICU Reg Region %d: base=0x%lx, size=0x%lx\n",
 				i, reg_map.regions[i].base,
 				reg_map.regions[i].size);

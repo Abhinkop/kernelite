@@ -584,7 +584,7 @@ void print_page_table_tree(const page_table_entry_t *table_base,
 
 bool map_page(page_table_t *root, const virt_addr v_addr,
 	      const phy_addr phy_addr, const page_permissions_t perms,
-	      const enum mem_type_t mem_type)
+	      const mem_type_t mem_type)
 {
 	if ((phy_addr & 0xFFF) || (v_addr & 0xFFF)) {
 		kprintf("Error: Addresses must be 4KB page aligned (VA: 0x%lx, PA: 0x%lx)\n",
@@ -656,11 +656,11 @@ bool map_page(page_table_t *root, const virt_addr v_addr,
 
 	page_desc->access_flag = 1;
 
-	if (mem_type == device) {
-		page_desc->attr_indx = device;
+	if (mem_type == DEVICE) {
+		page_desc->attr_indx = DEVICE;
 		page_desc->sh = SH_NON_SHAREABLE;
 	} else {
-		page_desc->attr_indx = normal; // Normal WB (MAIR slot 1)
+		page_desc->attr_indx = NORMAL; // Normal WB (MAIR slot 1)
 		page_desc->sh = SH_INNER_SHAREABLE;
 	}
 
@@ -713,7 +713,7 @@ bool setup_kernel_id_map(void)
 
 	while (cur_vaddr < end_vaddr) {
 		if (!map_page(root, cur_vaddr, cur_vaddr, kernel_exe_perms,
-			      normal)) {
+			      NORMAL)) {
 			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
 				cur_vaddr);
 			return false;
@@ -769,7 +769,7 @@ bool setup_kernel_map(memory_map_t *const mmap)
 			// code and RW for data). For this example, we
 		}
 		if (!map_page(kernel_map_root, cur_phy_addr + KERNEL_BASE,
-			      cur_phy_addr, perms, normal)) {
+			      cur_phy_addr, perms, NORMAL)) {
 			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
 				cur_phy_addr);
 			return false;
