@@ -5,7 +5,7 @@
 
 ![](docs/kernelite_logo.svg)
 
-**Kernelite** is a minimalist, educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction.
+**Kernelite** is a minimalist, monolithic educational operating system kernel built from scratch. The project aims to recreate core components of the Linux architecture to explore the fundamentals of operating system design and hardware-software interaction. Much of this codebase would be reused and restructured to serve as a baseline for a future microkernel-based hypervisor (which will heavily focus on highly optimized IPC design), though no guarantees.
 
 ## 🎯 Project Goals
 * **Multi-Arch Support:** Initially targeting **aarch64** (ARM64), with planned ports for **x86_64** and legacy 32-bit architectures.
@@ -120,3 +120,6 @@ make clean && make run-as-gdb-server DEBUG=1
 ```
 This starts QEMU paused, with a GDB server listening on `:1234`. Attach to it with `gdb-multiarch`, then run `make kill-gdb-server` once finished to stop the QEMU instance.
 `make` doesn't track build flags, only file timestamps, so the `clean` is required — otherwise a binary already built without `DEBUG=1` (stripped, no debug symbols) will be reused as-is.
+
+### Sample Output
+![](docs/sample.png)
