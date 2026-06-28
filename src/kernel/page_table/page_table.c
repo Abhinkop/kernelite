@@ -12,11 +12,11 @@
 #include "page_table/page_table.h"
 
 #include "allocator/page_allocator.h"
-#include "utils/kprintf.h"
-#include "linker/symbols.h"
-#include "linker/linker_defines.h"
 #include "fdt/fdt.h"
+#include "linker/linker_defines.h"
+#include "linker/symbols.h"
 #include "mem_layout/mem_layout.h"
+#include "utils/kprintf.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -42,6 +42,104 @@
 
 /** 2-bit field:  PA[51:50] */
 #define PA_51_50_MASK 0x3ULL
+
+/**
+ * @brief Access Permission Table bits (APTable[1:0]) for Stage 1 Table
+ * Descriptors.
+ *
+ * This hierarchical control restricts the maximum permissions allowed for all
+ * downstream block or page descriptors reachable through this table entry.
+ *
+ * @note These controls can only *restrict* permissions down the chain; they
+ * cannot grant more privileges than what a leaf L3 page descriptor specifies.
+ *
+ * +------+----------------------------+----------------------------+
+ * |Value | EL0 (Unprivileged)         | EL1 (Privileged)           |
+ * +------+----------------------------+----------------------------+
+ * | 0b00 | No restriction             | No restriction             |
+ * | 0b01 | No Access                  | No restriction             |
+ * | 0b10 | Read-Only (No write)       | Read-Only (No write)       |
+ * | 0b11 | No Access                  | Read-Only (No write)       |
+ * +------+----------------------------+----------------------------+
+ *
+ * @note APTable[0] is treated as 0 when virtualization is active and
+ * HCR_EL2.{NV,NV1} == {1,1}.
+ */
+enum aptable_values {
+	/** [0b00] No downstream permission modifications applied. */
+	APTABLE_EL0_NO_RESTRICTION_EL1_NO_RESTRICTION = 0b00,
+
+	/** [0b01] APTable[0]=1: strip EL0 access entirely. EL1
+	   unaffected. */
+	APTABLE_EL0_NO_ACCESS_EL1_NO_RESTRICTION = 0b01,
+
+	/** [0b10] APTable[1]=1: force read-only for all ELs. */
+	APTABLE_EL0_NO_WRITE_EL1_NO_WRITE = 0b10,
+
+	/** [0b11] Highly restricted. EL0: No Access, EL1: Forced
+	   Read-Only. */
+	APTABLE_EL0_NO_ACCESS_EL1_NO_WRITE = 0b11
+};
+
+/**
+ * @brief AP[2:1] data access permission encodings for Stage 1 leaf descriptors.
+ *
+ * Encodes the direct permissions written into bits [7:6] of a block or page
+ * descriptor.  For a stage 1 translation supporting two Exception levels
+ * (Table D8-63, ARMv8/ARMv9 ARM):
+ *
+ * +----------+-------------------------------------------+
+ * | AP[2:1]  | Permissions                               |
+ * +----------+-------------------------------------------+
+ * |   0b00   | PrivRead, PrivWrite                       |
+ * |   0b01   | PrivRead, PrivWrite, UnprivRead, UnprivWrite |
+ * |   0b10   | PrivRead                                  |
+ * |   0b11   | PrivRead, UnprivRead                      |
+ * +----------+-------------------------------------------+
+ *
+ * "Priv" == EL1 (kernel), "Unpriv" == EL0 (user).
+ */
+enum ap_values {
+	/** [0b00] EL1 read/write. EL0 no access. */
+	AP_PRIV_RW = 0b00,
+	/** [0b01] EL1 and EL0 read/write. */
+	AP_PRIV_UNPRIV_RW = 0b01,
+	/** [0b10] EL1 read-only. EL0 no access. */
+	AP_PRIV_RO = 0b10,
+	/** [0b11] EL1 and EL0 read-only. */
+	AP_PRIV_UNPRIV_RO = 0b11,
+};
+
+/**
+ * @brief SH[1:0] shareability domain encodings for Stage 1 leaf descriptors.
+ *
+ * Written into bits [9:8] of a block or page descriptor.  Controls which
+ * observers share the coherency domain for Normal memory accesses.
+ * For Device memory the shareability is always Outer Shareable regardless
+ * of this field.
+ *
+ * +--------+------------------+
+ * | SH[1:0]| Domain           |
+ * +--------+------------------+
+ * |  0b00  | Non-shareable    |
+ * |  0b01  | RESERVED         |
+ * |  0b10  | Outer Shareable  |
+ * |  0b11  | Inner Shareable  |
+ * +--------+------------------+
+ */
+enum sh_values {
+	/** [0b00] Non-shareable — no coherency requirement with other
+	   observers. */
+	SH_NON_SHAREABLE = 0b00,
+	/** [0b01] RESERVED — must not be used. */
+	SH_RESERVED = 0b01,
+	/** [0b10] Outer Shareable — coherent with the outer shareability domain
+	 *         (typically all CPUs + GPU + DMA-capable devices). */
+	SH_OUTER_SHAREABLE = 0b10,
+	/** [0b11] Inner Shareable — coherent within the inner shareability
+	 * domain (typically all CPUs in the same cluster). */
+	SH_INNER_SHAREABLE = 0b11,
+};
 
 /**
  * @brief Set the physical Next-Level Table Address (NLTA) in a table
@@ -584,7 +682,7 @@ void print_page_table_tree(const page_table_entry_t *table_base,
 
 bool map_page(page_table_t *root, const virt_addr v_addr,
 	      const phy_addr phy_addr, const page_permissions_t perms,
-	      const enum mem_type_t mem_type)
+	      const mem_type_t mem_type)
 {
 	if ((phy_addr & 0xFFF) || (v_addr & 0xFFF)) {
 		kprintf("Error: Addresses must be 4KB page aligned (VA: 0x%lx, PA: 0x%lx)\n",
@@ -656,11 +754,11 @@ bool map_page(page_table_t *root, const virt_addr v_addr,
 
 	page_desc->access_flag = 1;
 
-	if (mem_type == device) {
-		page_desc->attr_indx = device;
+	if (mem_type == DEVICE) {
+		page_desc->attr_indx = DEVICE;
 		page_desc->sh = SH_NON_SHAREABLE;
 	} else {
-		page_desc->attr_indx = normal; // Normal WB (MAIR slot 1)
+		page_desc->attr_indx = NORMAL; // Normal WB (MAIR slot 1)
 		page_desc->sh = SH_INNER_SHAREABLE;
 	}
 
@@ -713,7 +811,7 @@ bool setup_kernel_id_map(void)
 
 	while (cur_vaddr < end_vaddr) {
 		if (!map_page(root, cur_vaddr, cur_vaddr, kernel_exe_perms,
-			      normal)) {
+			      NORMAL)) {
 			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
 				cur_vaddr);
 			return false;
@@ -724,7 +822,7 @@ bool setup_kernel_id_map(void)
 	return true;
 }
 
-bool setup_kernel_map(Memory_map_t *const mmap)
+bool setup_kernel_map(memory_map_t *const mmap)
 {
 	// Todo: In the future, we can extend this function to support multiple
 	// memory.
@@ -768,8 +866,8 @@ bool setup_kernel_map(Memory_map_t *const mmap)
 			// and give them different permissions (e.g., RX for
 			// code and RW for data). For this example, we
 		}
-		if (!map_page(kernel_map_root, cur_phy_addr + kernel_base,
-			      cur_phy_addr, perms, normal)) {
+		if (!map_page(kernel_map_root, cur_phy_addr + KERNEL_BASE,
+			      cur_phy_addr, perms, NORMAL)) {
 			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
 				cur_phy_addr);
 			return false;

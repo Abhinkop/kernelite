@@ -11,8 +11,8 @@
 
 #include "timer/timer.h"
 
-#include "utils/kprintf.h"
 #include "fdt/fdt.h"
+#include "utils/kprintf.h"
 
 #include "../drivers/arm_timer.h"
 

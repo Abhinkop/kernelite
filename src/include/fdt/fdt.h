@@ -15,9 +15,9 @@
 #include "mem_layout/mem_layout.h"
 #include "utils/kprintf.h"
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /** @brief Maximum number of distinct memory regions the kernel will track. */
 #define MAX_MEM_REGIONS 16
@@ -25,62 +25,62 @@
 /**
  * @brief Represents a single physical memory span.
  */
-typedef struct {
+typedef struct memory_region_t {
 	/** @brief Start physical address of the region. */
 	phy_addr base;
 
 	/** @brief Size of the region in bytes. */
 	uint64_t size;
-} Memory_region_t;
+} memory_region_t;
 
 /**
  * @brief Container for the system physical memory layout.
  */
-typedef struct {
+typedef struct memory_map_t {
 	/** @brief Array of discovered regions. */
-	Memory_region_t regions[MAX_MEM_REGIONS];
+	memory_region_t regions[MAX_MEM_REGIONS];
 
 	/** @brief Actual number of regions populated. */
 	int count;
-} Memory_map_t;
+} memory_map_t;
 
 /**
  * @brief Interrupt category, as encoded in the first cell of an FDT
  * "interrupts" property.
  */
-typedef enum {
+typedef enum irq_type_t {
 	/** @brief Shared Peripheral Interrupt (routable to any core). */
 	IRQ_TYPE_SPI = 0x0,
 
 	/** @brief Private Peripheral Interrupt (local to a single core). */
 	IRQ_TYPE_PPI = 0x1,
-} Irq_type_t;
+} irq_type_t;
 
 /**
  * @brief Signal shape used to trigger an interrupt.
  */
-typedef enum {
+typedef enum irq_trigger_t {
 	/** @brief Interrupt is asserted on a signal edge. */
 	IRQ_TRIGGER_EDGE,
 
 	/** @brief Interrupt is asserted while the signal level is high. */
 	IRQ_TRIGGER_LEVEL_HIGH,
-} Irq_trigger_t;
+} irq_trigger_t;
 
 /**
  * @brief Describes a single interrupt as parsed from an FDT "interrupts"
  * specifier.
  */
-typedef struct {
+typedef struct interrupt_t {
 	/** @brief Interrupt category (SPI or PPI). */
-	Irq_type_t type;
+	irq_type_t type;
 
 	/** @brief Interrupt number within its category. */
 	uint32_t id;
 
 	/** @brief Trigger type for this interrupt. */
-	Irq_trigger_t trigger;
-} Interrupt_t;
+	irq_trigger_t trigger;
+} interrupt_t;
 
 /**
  * @brief Converts a parsed FDT interrupt specifier to its GIC INTID.
@@ -92,7 +92,7 @@ typedef struct {
  * @param interrupt Interrupt specifier to convert.
  * @return The GIC INTID, or -1 if @p interrupt has an unrecognized type.
  */
-static inline int32_t interrupt_to_intid(const Interrupt_t *const interrupt)
+static inline int32_t interrupt_to_intid(const interrupt_t *const interrupt)
 {
 	if (interrupt->type == IRQ_TYPE_PPI) {
 		return (int32_t)(16U + interrupt->id);
@@ -120,10 +120,10 @@ bool check_fdt(const void *ptr);
  * handles both 32-bit and 64-bit address formats.
  *
  * @param fdt Pointer to the FDT header in memory.
- * @param mmap Pointer to a Memory_map_t structure to be populated.
+ * @param mmap Pointer to a memory_map_t structure to be populated.
  * @return 0 on success, or a negative libfdt error code on failure.
  */
-int get_mem(const void *fdt, Memory_map_t *mmap);
+int get_mem(const void *fdt, memory_map_t *mmap);
 
 /**
  * @brief Retrieves a pointer to the interrupt controller node in the FDT.
@@ -154,12 +154,12 @@ char *get_compatible_string(const void *fdt, int node_offset);
  * @param fdt Pointer to the FDT header in memory.
  * @param node_offset Offset of the node for which to retrieve the register
  * property.
- * @param reg_map Pointer to a Memory_map_t structure to be populated with
+ * @param reg_map Pointer to a memory_map_t structure to be populated with
  * register information.
  * @return true if the register property is found and successfully parsed, false
  * otherwise.
  */
-bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map);
+bool get_reg_property(const void *fdt, int node_offset, memory_map_t *reg_map);
 
 /**
  * @brief Retrieves the interrupt property for a given node.
@@ -173,7 +173,7 @@ bool get_reg_property(const void *fdt, int node_offset, Memory_map_t *reg_map);
  * @p out_intr_array_len), or a negative libfdt error code on failure.
  */
 int get_intr_property(const void *fdt, int node_offset,
-		      Interrupt_t *out_intr_array, size_t out_intr_array_len);
+		      interrupt_t *out_intr_array, size_t out_intr_array_len);
 
 /**
  * @brief Finds all nodes in the FDT matching a given "compatible" string.

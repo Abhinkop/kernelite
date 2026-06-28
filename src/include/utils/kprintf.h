@@ -13,13 +13,12 @@
 #define UTILS_KPRINTF_H
 
 /**
- * @struct serial_t
  * @brief Hardware abstraction layer for serial I/O operations.
  *
  * This structure maps generic I/O requests to hardware-specific
  * driver functions (e.g., PL011 UART).
  */
-typedef struct {
+typedef struct serial_t {
 	/** @brief Function pointer to transmit a single character over the
 	 * serial port. */
 	void (*putc)(char chr);

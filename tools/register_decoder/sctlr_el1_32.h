@@ -9,8 +9,8 @@
 #ifndef SCTLR_EL1_32_H
 #define SCTLR_EL1_32_H
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /**
  * @union sctlr_el1_32_t

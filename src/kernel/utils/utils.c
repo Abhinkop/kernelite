@@ -11,13 +11,36 @@
  */
 
 #include "utils/utils.h"
-#include "utils/kprintf.h"
 #include "allocator/page_allocator.h"
-#include "linker/symbols.h"
-#include "fdt/fdt.h"
 #include "asm/asm_helper.h"
+#include "fdt/fdt.h"
+#include "linker/symbols.h"
+#include "utils/kprintf.h"
 
 #include <libfdt.h>
+
+/**
+ * @brief AArch64 CurrentEL register.
+ *
+ * Contains the current Exception Level. Read-only.
+ * The EL field is at bits [3:2]; bits [1:0] are RES0.
+ */
+typedef union current_el_t {
+	/** @brief Raw 64-bit register value. */
+	uint64_t raw;
+	struct __attribute__((packed)) {
+		/** @brief [1:0] Reserved. */
+		uint32_t res0 : 2;
+
+		/** @brief [3:2] EL: Current Exception Level.
+		 *  0b00 = EL0, 0b01 = EL1, 0b10 = EL2, 0b11 = EL3. */
+		uint32_t el : 2;
+
+		/** @brief [63:4] Reserved. */
+		uint64_t res0_rest : 60;
+	};
+} current_el_t;
+_Static_assert(sizeof(current_el_t) == 8, "CurrentEL must be 64 bits");
 
 /**
  * @brief Reads the current Exception Level via the CurrentEL system register.
@@ -39,7 +62,7 @@ static inline current_el_t read_current_el(void)
  *
  * @return bool True if reservation was successful, false otherwise.
  */
-bool reserve_kernel_img_pages(void)
+static bool reserve_kernel_img_pages(void)
 {
 	size_t img_size = get_image_size();
 	size_t num_pages = (img_size + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -65,7 +88,7 @@ bool reserve_kernel_img_pages(void)
  * @param fdt_addr Pointer to the FDT blob.
  * @return bool True if reservation was successful, false otherwise.
  */
-bool reserve_fdt_pages(const void *fdt_addr)
+static bool reserve_fdt_pages(const void *fdt_addr)
 {
 	size_t fdt_size = fdt_totalsize(fdt_addr);
 	size_t num_pages = (fdt_size + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -87,7 +110,7 @@ bool setup_page_allocator(const void *fdt_addr)
 		return false;
 	}
 
-	Memory_map_t mmap;
+	memory_map_t mmap;
 	// NOLINTNEXTLINE(*-int-to-ptr)
 	if (get_mem(fdt_addr, &mmap) < 0) {
 		kprintf("Failed to parse memory map from FDT. Halting.\n");

@@ -17,7 +17,7 @@ static virt_addr kernel_base_va = 0;
 
 void update_kernel_base_va(void)
 {
-	kernel_base_va = kernel_base;
+	kernel_base_va = KERNEL_BASE;
 }
 
 phy_addr va_to_pa(virt_addr v_addr)

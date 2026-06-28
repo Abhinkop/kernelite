@@ -7,14 +7,14 @@
  * @date 2026-04-12
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <strings.h>
-
 #include "sctlr_el1_32.h"
 #include "sctlr_el1_64.h"
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 /**
  * @struct reg_entry_t

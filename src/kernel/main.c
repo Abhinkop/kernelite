@@ -9,23 +9,23 @@
  * @date 2026-04-25
  */
 
-#include "drivers/uart.h"
-#include "page_table/page_table.h"
-#include "utils/kprintf.h"
-#include "fdt/fdt.h"
-#include "utils/utils.h"
-#include "linker/symbols.h"
-#include "mmu/mmu.h"
-#include "mem_layout/mem_layout.h"
-#include "asm/asm_helper.h"
 #include "allocator/page_allocator.h"
+#include "asm/asm_helper.h"
+#include "drivers/uart.h"
+#include "fdt/fdt.h"
 #include "icu/icu.h"
+#include "linker/symbols.h"
+#include "mem_layout/mem_layout.h"
+#include "mmu/mmu.h"
+#include "page_table/page_table.h"
 #include "timer/timer.h"
+#include "utils/kprintf.h"
+#include "utils/utils.h"
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdint.h>
 #include <libfdt.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #ifdef RUN_TESTS
 
@@ -289,7 +289,7 @@ int main(const uint64_t *boot_args_ptr)
 					       .read = true,
 					       .write = true,
 					       .user_accessible = false },
-			 device);
+			 DEVICE);
 	if (!uart_mapped) {
 		kprintf("Error while id mapping uart\n");
 		return 1;
@@ -298,7 +298,7 @@ int main(const uint64_t *boot_args_ptr)
 	kprintf("fdt adrr = 0x%lx size = 0x%x\n", (virt_addr)fdt_addr,
 		fdt_totalsize(fdt_addr));
 
-	Memory_map_t mmap;
+	memory_map_t mmap;
 	if (get_mem(fdt_addr, &mmap) < 0) {
 		kprintf("Failed to parse memory map from FDT. Halting.\n");
 		return 1;
@@ -321,13 +321,13 @@ int main(const uint64_t *boot_args_ptr)
 	}
 
 	// Map uart to high virtual address.
-	uart_mapped = map_page(get_kernel_map_root(), uart0_base + kernel_base,
+	uart_mapped = map_page(get_kernel_map_root(), uart0_base + KERNEL_BASE,
 			       uart0_base,
 			       (page_permissions_t){ .execute = false,
 						     .read = true,
 						     .write = true,
 						     .user_accessible = false },
-			       device);
+			       DEVICE);
 	if (!uart_mapped) {
 		kprintf("Error while mapping uart\n");
 		return 1;

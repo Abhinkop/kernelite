@@ -8,11 +8,10 @@
 #ifndef SCTLR_EL1_64_H
 #define SCTLR_EL1_64_H
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /**
- * @union sctlr_el1_t_64
  * @brief Representation of the System Control Register for Exception Level 1.
  * * This union allows accessing the SCTLR_EL1 register as a collective 64-bit
  * value or as individual bit-fields according to the ARMv8-A architecture

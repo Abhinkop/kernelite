@@ -12,11 +12,11 @@
 
 #include "icu/icu.h"
 
-#include "utils/kprintf.h"
 #include "fdt/fdt.h"
-#include "utils/string.h"
-#include "page_table/page_table.h"
 #include "linker/symbols.h"
+#include "page_table/page_table.h"
+#include "utils/kprintf.h"
+#include "utils/string.h"
 
 #include "../drivers/gicv3.h"
 #include <stdint.h>

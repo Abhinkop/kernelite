@@ -122,7 +122,7 @@ bool test_page_table_mapping(page_table_t *root, virt_addr v_addr,
 			     phy_addr phy_addr, page_permissions_t test_perms)
 {
 	EXPECT(root != NULL);
-	EXPECT(map_page(root, v_addr, phy_addr, test_perms, normal));
+	EXPECT(map_page(root, v_addr, phy_addr, test_perms, NORMAL));
 	EXPECT(verify_map(root, v_addr, phy_addr));
 
 	return true; // Indicate test passed
@@ -240,7 +240,7 @@ bool init_page_table_map(void)
 	EXPECT(map_page(get_id_map_root(), uart0_base, uart0_base,
 			(page_permissions_t){
 				.execute = false, .read = true, .write = true },
-			device))
+			DEVICE))
 	return true;
 }
 

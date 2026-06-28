@@ -10,8 +10,8 @@
  * @date 2026-05-16
  */
 
-#include "utils/kprintf.h"
 #include "icu/icu.h"
+#include "utils/kprintf.h"
 
 #include <stdint.h>
 

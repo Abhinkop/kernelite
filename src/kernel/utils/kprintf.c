@@ -11,11 +11,11 @@
 
 #include "utils/kprintf.h"
 
-#include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 /** @brief Global serial console. */
-serial_t serial_console;
+static serial_t serial_console;
 
 /**
  * @brief Convert an unsigned integer to a string using the given base.
