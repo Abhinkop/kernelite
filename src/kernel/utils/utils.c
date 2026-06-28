@@ -20,6 +20,29 @@
 #include <libfdt.h>
 
 /**
+ * @brief AArch64 CurrentEL register.
+ *
+ * Contains the current Exception Level. Read-only.
+ * The EL field is at bits [3:2]; bits [1:0] are RES0.
+ */
+typedef union current_el_t {
+	/** @brief Raw 64-bit register value. */
+	uint64_t raw;
+	struct __attribute__((packed)) {
+		/** @brief [1:0] Reserved. */
+		uint32_t res0 : 2;
+
+		/** @brief [3:2] EL: Current Exception Level.
+		 *  0b00 = EL0, 0b01 = EL1, 0b10 = EL2, 0b11 = EL3. */
+		uint32_t el : 2;
+
+		/** @brief [63:4] Reserved. */
+		uint64_t res0_rest : 60;
+	};
+} current_el_t;
+_Static_assert(sizeof(current_el_t) == 8, "CurrentEL must be 64 bits");
+
+/**
  * @brief Reads the current Exception Level via the CurrentEL system register.
  * @return current_el_t The decoded CurrentEL register value.
  */
