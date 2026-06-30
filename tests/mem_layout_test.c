@@ -48,12 +48,12 @@ test_suite_t get_mem_layout_test_suite(void)
 {
 	test_suite_t suite = {
 		.suite_name = "mem_layout",
-		.num_tests  = 0,
+		.num_tests = 0,
 	};
 
-#define ADD(fn)                                                 \
-	suite.tests[suite.num_tests].test_name = #fn;           \
-	suite.tests[suite.num_tests].test_fn   = fn;            \
+#define ADD(fn)                                       \
+	suite.tests[suite.num_tests].test_name = #fn; \
+	suite.tests[suite.num_tests].test_fn = fn;    \
 	suite.num_tests++
 
 	/*
