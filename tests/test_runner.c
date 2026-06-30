@@ -155,6 +155,57 @@ void run_internal_tests(const void *fdt_addr)
 		kprintf("Unit tests FAILED -- aborting before integration tests\n");
 		qemu_exit(1);
 	}
+}
 
-	qemu_exit(0);
+/* ── Integration test runner (post-MMU, post-GIC-init) ──────────────── */
+
+extern test_suite_t get_gic_integration_test_suite(void);
+
+/**
+ * @brief Run gic & timer tests from high_half_main() after all drivers init.
+ */
+void run_gic_and_timer_tests(void)
+{
+	kprintf("\n");
+	kprintf("========================================\n");
+	kprintf("  kernelite gic & timer test runner\n");
+	kprintf("========================================\n");
+
+	size_t total_passed = 0;
+	size_t total_failed = 0;
+
+#define RUN_SUITE(getter)                                                    \
+	do {                                                                 \
+		test_suite_t test_suite = getter();                          \
+		kprintf("\n[suite] %s (%lu tests)\n", test_suite.suite_name, \
+			test_suite.num_tests);                               \
+		size_t passed = 0;                                           \
+		size_t failed = 0;                                           \
+		for (size_t _j = 0; _j < test_suite.num_tests; _j++) {       \
+			bool _ok = test_suite.tests[_j].test_fn();           \
+			if (_ok) {                                           \
+				kprintf("  [ PASS ] %s\n",                   \
+					test_suite.tests[_j].test_name);     \
+				passed++;                                    \
+			} else {                                             \
+				kprintf("  [ FAIL ] %s\n",                   \
+					test_suite.tests[_j].test_name);     \
+				failed++;                                    \
+			}                                                    \
+		}                                                            \
+		kprintf("  --> %lu passed, %lu failed\n", passed, failed);   \
+		total_passed += passed;                                      \
+		total_failed += failed;                                      \
+	} while (0)
+
+	RUN_SUITE(get_gic_integration_test_suite);
+
+#undef RUN_SUITE
+
+	kprintf("\n========================================\n");
+	kprintf("  GIC & TIMER TEST TOTAL: %lu passed, %lu failed\n",
+		total_passed, total_failed);
+	kprintf("========================================\n\n");
+
+	exit(total_failed > 0 ? 1 : 0);
 }

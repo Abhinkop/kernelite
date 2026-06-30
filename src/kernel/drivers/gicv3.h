@@ -80,7 +80,7 @@ void gicv3_trigger_sgi(uint32_t intid, uint32_t target_aff0);
  *
  * @return gicd_ctlr_t with the current hardware value,
  */
-gicd_ctlr_t gicv3_read_gicd_ctlr(void);
+uint32_t gicv3_read_gicd_ctlr(void);
 
 /**
  * @brief Read GICD_TYPER.
@@ -88,14 +88,14 @@ gicd_ctlr_t gicv3_read_gicd_ctlr(void);
  * @return gicd_typer_t with the current hardware value, or {.raw=0} if not
  *         initialised.
  */
-gicd_typer_t gicv3_read_gicd_typer(void);
+uint32_t gicv3_read_gicd_typer(void);
 
 /**
  * @brief Return the virtual address of the CPU0 GICR Wake register.
  *
  * @return Volatile pointer to gicr_waker_t for CPU 0, or NULL if not init.
  */
-volatile gicr_waker_t *gicv3_get_waker(void);
+volatile uint32_t *gicv3_get_waker(void);
 
 #endif /* RUN_TESTS */
 

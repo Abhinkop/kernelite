@@ -2582,29 +2582,27 @@ void gicv3_trigger_sgi(uint32_t intid, uint32_t target_aff0)
 	asm volatile("isb");
 }
 
-gicd_ctlr_t gicv3_read_gicd_ctlr(void)
+uint32_t gicv3_read_gicd_ctlr(void)
 {
 	if (!memap.dist_base) {
-		gicd_ctlr_t zero = { .raw = 0 };
-		return zero;
+		return 0;
 	}
-	return *get_gicd_ctlr();
+	return (*(get_gicd_ctlr())).raw;
 }
 
-gicd_typer_t gicv3_read_gicd_typer(void)
+uint32_t gicv3_read_gicd_typer(void)
 {
 	if (!memap.dist_base) {
-		gicd_typer_t zero = { .raw = 0 };
-		return zero;
+		return 0;
 	}
-	return *get_gicd_typer();
+	return (*(get_gicd_typer())).raw;
 }
 
-volatile gicr_waker_t *gicv3_get_waker(void)
+volatile uint32_t *gicv3_get_waker(void)
 {
 	if (!memap.redist_base)
 		return NULL;
-	return get_gicr_waker(0);
+	return (volatile uint32_t *)get_gicr_waker(0);
 }
 
 #endif /* RUN_TESTS */

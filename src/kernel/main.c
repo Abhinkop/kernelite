@@ -42,6 +42,11 @@
  */
 extern void run_internal_tests(const void *fdt_addr);
 
+/**
+ * @brief Run integration tests after GIC and timer initialisation.
+ */
+extern void run_gic_and_timer_tests(void);
+
 #endif /* RUN_TESTS */
 
 /** @brief Switch to high virtual addresses. */
@@ -236,6 +241,10 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 	trigger_sgi(11);
 
 	setup_system_timer(fdt);
+
+#ifdef RUN_TESTS
+	run_gic_and_timer_tests();
+#endif
 
 	uint32_t ticks = 0;
 	const uint32_t max_num_of_ticks = 5;
