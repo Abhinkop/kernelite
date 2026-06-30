@@ -160,6 +160,7 @@ void run_internal_tests(const void *fdt_addr)
 /* ── Integration test runner (post-MMU, post-GIC-init) ──────────────── */
 
 extern test_suite_t get_gic_integration_test_suite(void);
+extern test_suite_t get_timer_integration_test_suite(void);
 
 /**
  * @brief Run gic & timer tests from high_half_main() after all drivers init.
@@ -199,6 +200,7 @@ void run_gic_and_timer_tests(void)
 	} while (0)
 
 	RUN_SUITE(get_gic_integration_test_suite);
+	RUN_SUITE(get_timer_integration_test_suite);
 
 #undef RUN_SUITE
 
