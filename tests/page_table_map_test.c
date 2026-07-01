@@ -7,10 +7,10 @@
  * structures are consistent.
  */
 
-#include "../src/include/page_table/page_table.h"
 #include "../src/include/allocator/page_allocator.h"
-#include "../src/include/linker/symbols.h"
 #include "../src/include/linker/linker_defines.h"
+#include "../src/include/linker/symbols.h"
+#include "../src/include/page_table/page_table.h"
 
 #include "test.h"
 

@@ -4,8 +4,8 @@
  * addresses.
  */
 
-#include "../src/include/linker/symbols.h"
 #include "../src/include/linker/linker_defines.h"
+#include "../src/include/linker/symbols.h"
 
 #include "test.h"
 

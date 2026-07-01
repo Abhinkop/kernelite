@@ -13,9 +13,10 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /** @brief Maximum number of tests per suite. */
-#define MAX_TESTS_PER_SUITE 10
+#define MAX_TESTS_PER_SUITE 64
 
 /** @brief Type definition for a test function pointer. */
 typedef bool (*test_fn_t)(void);
@@ -33,11 +34,54 @@ typedef struct test_suite {
 	size_t num_tests;
 } test_suite_t;
 
-/** @brief Macro for asserting test conditions. */
-#define EXPECT(cond)                                 \
-	if (!(cond)) {                               \
-		kprintf("Test failed: %s\n", #cond); \
-		return false;                        \
+/**
+ * @brief Fail the test if @p cond is false, printing the condition.
+ */
+#define EXPECT(cond)                                                       \
+	if (!(cond)) {                                                     \
+		kprintf("EXPECT failed [%s:%d]: %s\n", __FILE__, __LINE__, \
+			#cond);                                            \
+		return false;                                              \
+	}
+
+/**
+ * @brief Fail the test if @p a != @p b
+ */
+#define EXPECT_EQ(a, b) EXPECT((a) == (b))
+
+/**
+ * @brief Fail the test if @p a == @p b.
+ */
+#define EXPECT_NEQ(a, b) EXPECT((a) != (b))
+
+/**
+ * @brief Fail the test if @p a < @p b.
+ */
+#define EXPECT_GE(a, b) EXPECT((a) >= (b))
+
+/**
+ * @brief Fail the test if @p a > @p b.
+ */
+#define EXPECT_LE(a, b) EXPECT((a) <= (b))
+
+/**
+ * @brief Fail the test if @p ptr is not NULL.
+ */
+#define EXPECT_NULL(ptr)                                                \
+	if ((ptr) != NULL) {                                            \
+		kprintf("EXPECT_NULL failed [%s:%d]: %s is not NULL\n", \
+			__FILE__, __LINE__, #ptr);                      \
+		return false;                                           \
+	}
+
+/**
+ * @brief Fail the test if @p ptr is NULL.
+ */
+#define EXPECT_NOT_NULL(ptr)                                            \
+	if ((ptr) == NULL) {                                            \
+		kprintf("EXPECT_NOT_NULL failed [%s:%d]: %s is NULL\n", \
+			__FILE__, __LINE__, #ptr);                      \
+		return false;                                           \
 	}
 
 #endif /* TEST_TEST_H */

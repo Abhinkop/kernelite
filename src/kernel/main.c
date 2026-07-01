@@ -42,6 +42,11 @@
  */
 extern void run_internal_tests(const void *fdt_addr);
 
+/**
+ * @brief Run integration tests after GIC and timer initialisation.
+ */
+extern void run_gic_and_timer_tests(void);
+
 #endif /* RUN_TESTS */
 
 /** @brief Switch to high virtual addresses. */
@@ -75,51 +80,6 @@ uint64_t boot_args[4];
 static void uart0_putchar(char chr)
 {
 	uart0.putc(&uart0, chr);
-}
-
-/**
- * @brief Trigger a Group 1 SGI targeting the current PE.
- *
- * Generates a Software Generated Interrupt by writing ICC_SGI1R_EL1.
- * The SGI is targeted at the current PE only, using the core ID read
- * from MPIDR_EL1.Aff0 to set the corresponding TargetList bit.
- *
- * @note The GIC must be fully initialised and IRQs unmasked via
- *       unmask_irq() before the SGI will be taken as an exception.
- *       Aff1, Aff2, Aff3 are left as 0, which is correct for a
- *       single-cluster system such as QEMU virt.
- *
- * @param intid SGI INTID to generate (0-15). Values outside this
- *              range are invalid and will be rejected.
- */
-static void trigger_sgi(uint32_t intid)
-{
-	if (intid > 15) {
-		kprintf("Error: invalid SGI INTID %u — SGIs are INTIDs 0-15 only\n",
-			intid);
-		return;
-	}
-
-	/* ICC_SGI1R_EL1 raw layout: [15:0] TargetList, [27:24] INTID,
-	 * Aff1/Aff2/Aff3 left as 0. */
-	uint64_t raw = (1ULL << get_core_id()) | ((uint64_t)intid << 24);
-	WRITE_SYS_REG(icc_sgi1r_el1, raw);
-	asm volatile("isb");
-}
-
-/**
- * @brief Test handler for a self-triggered SGI.
- *
- * Registered against an SGI INTID via icu_register_irq() to verify that
- * trigger_sgi() correctly reaches the ICU dispatch path. Prints the INTID
- * passed as private_data when invoked.
- *
- * @param int_id Pointer to the uint32_t INTID, passed through as
- *               private_data on each invocation.
- */
-static void sgi_handler(void *int_id)
-{
-	kprintf("Received int id = %u\n", *((uint32_t *)int_id));
 }
 
 /**
@@ -225,17 +185,11 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 
 	pl011_register_handler(&uart0);
 
-	uint32_t intid = 11;
-	handler_data_t temp = {
-		.handler = sgi_handler,
-		// Danger: Passing stack var to irq handler
-		// Fine now as this is only to test the implementaion.
-		.private_data = &intid,
-	};
-	icu_register_irq(intid, temp);
-	trigger_sgi(11);
-
 	setup_system_timer(fdt);
+
+#ifdef RUN_TESTS
+	run_gic_and_timer_tests();
+#endif
 
 	uint32_t ticks = 0;
 	const uint32_t max_num_of_ticks = 5;

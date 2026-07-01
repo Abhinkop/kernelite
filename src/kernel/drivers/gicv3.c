@@ -2566,3 +2566,43 @@ void gicv3_handle_irq(void)
 	eoir.intid = intid;
 	WRITE_SYS_REG(icc_eoir1_el1, eoir.raw);
 }
+
+#ifdef RUN_TESTS
+
+void gicv3_trigger_sgi(uint32_t intid, uint32_t target_aff0)
+{
+	if (intid > 15) {
+		kprintf("GIC: invalid SGI INTID %u (must be 0-15)\n", intid);
+		return;
+	}
+
+	uint64_t raw = ((uint64_t)1 << (target_aff0 & 0xF)) |
+		       ((uint64_t)intid << 24);
+	WRITE_SYS_REG(icc_sgi1r_el1, raw);
+	asm volatile("isb");
+}
+
+uint32_t gicv3_read_gicd_ctlr(void)
+{
+	if (!memap.dist_base) {
+		return 0;
+	}
+	return (*(get_gicd_ctlr())).raw;
+}
+
+uint32_t gicv3_read_gicd_typer(void)
+{
+	if (!memap.dist_base) {
+		return 0;
+	}
+	return (*(get_gicd_typer())).raw;
+}
+
+volatile uint32_t *gicv3_get_waker(void)
+{
+	if (!memap.redist_base)
+		return NULL;
+	return (volatile uint32_t *)get_gicr_waker(0);
+}
+
+#endif /* RUN_TESTS */
