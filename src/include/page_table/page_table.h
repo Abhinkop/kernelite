@@ -359,10 +359,14 @@ bool setup_kernel_id_map(phy_addr serial_device_addr_base);
 
 /**
  * @brief Set up the kernel's higher-half virtual-memory map.
+ *
+ * Maps every region described by @p mmap into the higher half, giving pages
+ * within the kernel image RWX permissions and all other pages RW.
+ *
  * @param mmap Pointer to the memory map structure describing the available
  * physical-memory regions.
- * @return true on success, false on failure such as an allocation error or
- * invalid mapping configuration.
+ * @return true on success, false on failure such as an empty memory map, an
+ * allocation error, or an invalid mapping configuration.
  */
 bool setup_kernel_map(memory_map_t *mmap);
 
