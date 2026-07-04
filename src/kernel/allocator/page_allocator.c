@@ -492,3 +492,30 @@ void page_dump_status(void)
 		}
 	}
 }
+
+#ifdef RUN_TESTS
+
+void invalidate_all_memory_chunks(void)
+{
+	for (size_t i = 0; i < MAX_MEM_CHUNKS; i++) {
+		mem_chunks[i].initialized = false;
+	}
+}
+
+void get_bitmap_addr_and_size(phy_addr addr, phy_addr *bitmap_addr,
+			      size_t *bitmap_size)
+{
+	memory_chunk_t *chunk = find_chunk_for_address(addr);
+	if (!chunk) {
+		kprintf("PAGE ERROR: No memory chunk found for address 0x%lx\n",
+			addr);
+		*bitmap_addr = 0;
+		*bitmap_size = 0;
+		return;
+	}
+
+	*bitmap_addr = va_to_pa((virt_addr)chunk->bitmap);
+	*bitmap_size = (chunk->total_pages + 7) / 8; // Size in bytes
+}
+
+#endif /* RUN_TESTS */

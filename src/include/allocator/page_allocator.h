@@ -93,4 +93,29 @@ void page_free(phy_addr start, size_t num_pages);
  */
 void page_dump_status(void);
 
+#ifdef RUN_TESTS
+
+/**
+ * @brief Marks every managed memory chunk as uninitialized.
+ *
+ * Test-only helper used to reset the allocator to a clean state between test
+ * cases.
+ */
+void invalidate_all_memory_chunks(void);
+
+/**
+ * @brief Looks up the bitmap location and size for a managed address.
+ *
+ * Test-only helper that finds the chunk owning @p addr and reports its
+ * bitmap. If no chunk owns @p addr, both outputs are set to 0.
+ *
+ * @param addr        Physical address owned by the chunk to inspect.
+ * @param bitmap_addr Out-param receiving the bitmap's physical address.
+ * @param bitmap_size Out-param receiving the bitmap size in bytes.
+ */
+void get_bitmap_addr_and_size(phy_addr addr, phy_addr *bitmap_addr,
+			      size_t *bitmap_size);
+
+#endif /* RUN_TESTS */
+
 #endif /* ALLOCATOR_PAGE_ALLOCATOR_H */
