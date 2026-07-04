@@ -11,10 +11,16 @@
 #ifndef LINKER_SYMBOLS_H
 #define LINKER_SYMBOLS_H
 
+#include "mem_layout/mem_layout.h"
 #include "page_table/page_table.h"
 
 #include <stddef.h>
 #include <stdint.h>
+
+/**
+ * @brief Start of the identity page map directory bitmap.
+ */
+extern uint8_t idmap_pg_dir_bitmap_start[];
 
 /**
  * @brief Start of the identity page map directory pages.
@@ -50,7 +56,16 @@ static inline size_t get_image_size(void)
  * @return the physical address of the start of the id-map region, which is
  * the bitmap page preceding the id-map page directory.
  */
-static inline page_table_t *get_id_map_root()
+static inline phy_addr get_id_map_region_start(void)
+{
+	return (phy_addr)&idmap_pg_dir_bitmap_start;
+}
+
+/**
+ * @brief Return the root of the id map
+ * @return the pointer to the root of the id map.
+ */
+static inline page_table_t *get_id_map_root(void)
 {
 	return (page_table_t *)&idmap_pg_dir_start;
 }

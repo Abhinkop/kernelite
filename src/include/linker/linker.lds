@@ -34,6 +34,8 @@ SECTIONS
 
     /* Linux pattern: Group early structures and enforce strict page alignment */
     .data.page_tables : ALIGN(LINKER_PAGE_SIZE) {
+        idmap_pg_dir_bitmap_start = .;
+        . += LINKER_PAGE_SIZE;
         idmap_pg_dir_start = .;
         . += ID_MAP_SIZE;
 
