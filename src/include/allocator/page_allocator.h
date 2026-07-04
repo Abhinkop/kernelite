@@ -20,19 +20,34 @@
 #include <stdint.h>
 
 /**
- * @brief Initializes the page allocator with a specific region of memory.
+ * @brief Registers a new physical memory region with the allocator.
  *
- * Sets up the internal tracking structures (e.g., bitmap or free list) to
- * manage the physical memory starting at @p mem_start.
+ * Initializes a new memory chunk for the range starting at @p mem_start and
+ * spanning @p mem_size bytes. If @p check_kernel_overlap is true, the region
+ * is rejected when it overlaps the kernel image.
  *
- * @param mem_start The physical address of the beginning of the manageable
- * physical memory.
- * @param mem_size  Total size of the memory region in bytes.
- * @return bool True if initialization was successful, false otherwise.
+ * @param mem_start The physical address of the beginning of the region.
+ * @param mem_size  Total size of the region, in bytes.
+ * @param check_kernel_overlap Whether to reject regions that overlap with
+ * the kernel image.
+ * @return true if the region was added successfully, false otherwise.
  */
-bool page_init(phy_addr mem_start, size_t mem_size);
+bool page_allocator_add_region(phy_addr mem_start, size_t mem_size,
+			       bool check_kernel_overlap);
 
-/** @brief Fixes up the page allocator after the switch to high VAs. */
+/**
+ * @brief Removes a previously registered memory region.
+ *
+ * Marks the region that starts at @p mem_start as no longer managed by the
+ * allocator.
+ *
+ * @param mem_start The physical base address of the region to remove.
+ * @return true if the region was found and removed, false otherwise.
+ */
+bool page_allocator_remove_region(phy_addr mem_start);
+
+/** @brief Rewrites allocator bitmap pointers after the switch to high virtual
+ * addresses. */
 void fixup_page_allocator(void);
 
 /**

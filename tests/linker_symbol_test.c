@@ -16,7 +16,6 @@ bool linker_symbols(void)
 	uintptr_t idmap_pg_dir_start_addr = (uintptr_t)&idmap_pg_dir_start;
 	uintptr_t kernel_pg_dir_root_start_addr =
 		(uintptr_t)&kernel_pg_dir_root_start;
-	uintptr_t bitmap_start_addr = (uintptr_t)&page_allocator_bit_map_start;
 
 	EXPECT(image_start_addr < image_end_addr);
 
@@ -34,15 +33,6 @@ bool linker_symbols(void)
 	EXPECT(kernel_pg_dir_root_start_addr + (uintptr_t)LINKER_PAGE_SIZE <
 	       image_end_addr);
 	EXPECT(kernel_pg_dir_root_start_addr + (uintptr_t)LINKER_PAGE_SIZE >
-	       image_start_addr);
-	EXPECT(kernel_pg_dir_root_start_addr + (uintptr_t)LINKER_PAGE_SIZE ==
-	       bitmap_start_addr);
-
-	EXPECT(bitmap_start_addr < image_end_addr);
-	EXPECT(bitmap_start_addr > image_start_addr);
-	EXPECT(bitmap_start_addr + (uintptr_t)LINKER_BITMAP_SIZE <
-	       image_end_addr);
-	EXPECT(bitmap_start_addr + (uintptr_t)LINKER_BITMAP_SIZE >
 	       image_start_addr);
 
 	return true;

@@ -39,9 +39,6 @@ SECTIONS
 
         kernel_pg_dir_root_start = .;
         . += LINKER_PAGE_SIZE;
-
-        page_allocator_bit_map_start = .;
-        . += LINKER_BITMAP_SIZE; /* 64 KiB for the page bitmap */
     } :data_perm
 
     /* Define a small stack area (16KB) */
