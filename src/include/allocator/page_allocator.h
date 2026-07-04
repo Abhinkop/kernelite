@@ -19,6 +19,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/** @brief A null physical address value. */
+#define PHYS_ADDR_NULL ((phy_addr)NULL)
+
 /**
  * @brief Registers a new physical memory region with the allocator.
  *
@@ -67,10 +70,10 @@ bool reserve_page(phy_addr start, size_t num_pages);
  * Searches for a free span of memory large enough to hold @p num_pages.
  *
  * @param num_pages The number of contiguous 4 KiB pages requested.
- * @return void* Pointer to the start of the allocated block,
- * or NULL if insufficient contiguous memory exists.
+ * @return phy_addr start address of the allocated block,
+ * or PHYS_ADDR_NULL if insufficient contiguous memory exists.
  */
-void *page_alloc(size_t num_pages);
+phy_addr page_alloc(size_t num_pages);
 
 /**
  * @brief Frees a previously allocated block of physical pages.

@@ -192,18 +192,19 @@ static bool page_init_chunk(phy_addr mem_start, size_t mem_size,
  *
  * @param num_pages Number of contiguous pages to allocate.
  * @param chunk     Chunk to search for free pages.
- * @return Pointer to the allocation base, or NULL if none was found.
+ * @return The physical base address of the allocation, or PHYS_ADDR_NULL if
+ * none was found.
  */
-static void *page_alloc_chunk(size_t num_pages, memory_chunk_t *chunk)
+static phy_addr page_alloc_chunk(size_t num_pages, memory_chunk_t *chunk)
 {
 	if (num_pages == 0) {
-		return NULL;
+		return PHYS_ADDR_NULL;
 	}
 
 	if (num_pages > chunk->total_pages) {
 		kprintf("PAGE: Allocation failed. Request (0x%lx) exceeds total capacity (0x%lx)\n",
 			num_pages, chunk->total_pages);
-		return NULL;
+		return PHYS_ADDR_NULL;
 	}
 
 	size_t continuous_found = 0;
@@ -226,10 +227,10 @@ static void *page_alloc_chunk(size_t num_pages, memory_chunk_t *chunk)
 				}
 
 				// NOLINTNEXTLINE(*-int-to-ptr)
-				void *ptr = (void *)(chunk->mem_base +
-						     (start_index * PAGE_SIZE));
-				kprintf("PAGE: Allocated 0x%lx pages at %p\n",
-					num_pages, ptr);
+				phy_addr ptr = (chunk->mem_base +
+						(start_index * PAGE_SIZE));
+				kprintf("PAGE: Allocated 0x%lx pages at 0x%lx\n",
+					num_pages, (uintptr_t)ptr);
 				return ptr;
 			}
 		} else {
@@ -239,7 +240,7 @@ static void *page_alloc_chunk(size_t num_pages, memory_chunk_t *chunk)
 
 	kprintf("PAGE: Allocation failed. No contiguous block of 0x%lx pages found.\n",
 		num_pages);
-	return NULL;
+	return PHYS_ADDR_NULL;
 }
 
 /**
@@ -459,13 +460,13 @@ bool reserve_page(phy_addr start, size_t num_pages)
 	return reserve_page_chunk(start, num_pages, chunk);
 }
 
-void *page_alloc(size_t num_pages)
+phy_addr page_alloc(size_t num_pages)
 {
 	memory_chunk_t *chunk = find_chunk_with_free_pages(num_pages);
 	if (!chunk) {
 		kprintf("PAGE ERROR: No memory chunk has enough free pages for allocation of 0x%lx pages\n",
 			num_pages);
-		return NULL;
+		return PHYS_ADDR_NULL;
 	}
 
 	return page_alloc_chunk(num_pages, chunk);
