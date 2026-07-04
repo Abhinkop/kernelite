@@ -308,11 +308,14 @@ static void set_next_level_table(page_table_entry_t *entry,
  */
 static bool allocate_new_table(table_desc_t *entry)
 {
-	page_table_t *new_table = (page_table_t *)page_alloc(1);
-	if (new_table == NULL) {
+	phy_addr new_table_phys = page_alloc(1);
+	if (new_table_phys == PHYS_ADDR_NULL) {
 		kprintf("Failed to allocate new page table\n");
 		return false;
 	}
+
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	page_table_t *new_table = (page_table_t *)pa_to_va(new_table_phys);
 
 	page_table_init(new_table);
 
@@ -772,15 +775,16 @@ void dump_memory_map(page_table_t *root)
 	kprintf("--- Memory Map Dump End ---\n");
 }
 
-bool setup_kernel_id_map(void)
+bool setup_kernel_id_map(phy_addr serial_device_addr_base)
 {
+	phy_addr idmap_pg_dir_bitmap_start_addr = get_id_map_region_start();
 	void *idmap_pg_dir_start_addr = get_id_map_root();
 
 	// Initialize the page tracking block allocated for the ID map
 	// structures
-	bool page_init_result =
-		page_init(va_to_pa((virt_addr)idmap_pg_dir_start_addr),
-			  (size_t)ID_MAP_SIZE);
+	bool page_init_result = page_allocator_add_region(
+		idmap_pg_dir_bitmap_start_addr, (size_t)ID_MAP_SIZE + PAGE_SIZE,
+		false);
 	if (!page_init_result) {
 		kprintf("Error: Failed while setting up initial static page idmap pool\n");
 		return false;
@@ -789,10 +793,15 @@ bool setup_kernel_id_map(void)
 	// Allocate the root Level 0 page table frame from the newly
 	// initialized pool. This should be intentionally done first after the
 	// page allocator is initialized
-	page_table_t *root = (page_table_t *)page_alloc(1);
-	if (root == NULL ||
-	    // let the check be here to ensure we are using the right map
-	    ((void *)root != idmap_pg_dir_start_addr)) {
+	phy_addr root_phys_addr = page_alloc(1);
+	if (root_phys_addr == PHYS_ADDR_NULL) {
+		kprintf("Error: Failed while allocating initial static page idmap root\n");
+		return false;
+	}
+
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	page_table_t *root = (page_table_t *)pa_to_va(root_phys_addr);
+	if (((void *)root != idmap_pg_dir_start_addr)) {
 		kprintf("Error: Failed while allocating initial static page idmap root\n");
 		return false;
 	}
@@ -818,6 +827,21 @@ bool setup_kernel_id_map(void)
 		}
 		cur_vaddr += PAGE_SIZE;
 	}
+
+	bool serial_mapped =
+		map_page(get_id_map_root(), serial_device_addr_base,
+			 serial_device_addr_base,
+			 (page_permissions_t){ .execute = false,
+					       .read = true,
+					       .write = true,
+					       .user_accessible = false },
+			 DEVICE);
+	if (!serial_mapped) {
+		kprintf("Error while id mapping serial device page\n");
+		return false;
+	}
+
+	page_allocator_remove_region(idmap_pg_dir_bitmap_start_addr);
 
 	return true;
 }

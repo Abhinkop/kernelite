@@ -8,12 +8,13 @@
  * Suite getters must therefore be called directly (PC-relative bl) and their
  * returned suite_t processed immediately on the stack, one at a time.
  *
- * BSS clobbering: page_init() zeroes the bitmap region which is adjacent to
- * BSS in the linked image.  Any static (BSS) variable in test code will be
- * wiped on the second setup_page_allocator() call.  All mutable test state
- * must live on the stack.
+ * BSS clobbering: page_allocator_add_region() zeroes the bitmap region
+ * which is adjacent to BSS in the linked image.  Any static (BSS) variable
+ * in test code will be wiped on the second setup_page_allocator() call.  All
+ * mutable test state must live on the stack.
  */
 
+#include "../src/include/allocator/page_allocator.h"
 #include "../src/include/utils/kprintf.h"
 #include "../src/include/utils/utils.h"
 
@@ -155,6 +156,8 @@ void run_internal_tests(const void *fdt_addr)
 		kprintf("Unit tests FAILED -- aborting before integration tests\n");
 		qemu_exit(1);
 	}
+
+	invalidate_all_memory_chunks();
 }
 
 /* ── Integration test runner (post-MMU, post-GIC-init) ──────────────── */

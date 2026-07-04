@@ -117,19 +117,15 @@ bool setup_page_allocator(const void *fdt_addr)
 		return false;
 	}
 
-	if (mmap.count != 1) {
-		kprintf("Current implementation only supports a single memory region. Halting.\n");
-		return false;
-	}
+	for (int i = 0; i < mmap.count; i++) {
+		bool page_init_result = page_allocator_add_region(
+			mmap.regions[i].base, mmap.regions[i].size, true);
 
-	// NOLINTBEGIN(*-int-to-ptr)
-	bool page_init_result =
-		page_init(mmap.regions[0].base, mmap.regions[0].size);
-	// NOLINTEND(*-int-to-ptr)
-
-	if (!page_init_result) {
-		kprintf("Failed to initialize page allocator. Halting.\n");
-		return false;
+		if (!page_init_result) {
+			kprintf("Failed to add memory region %d [0x%lx, size 0x%lx] to the page allocator\n",
+				i, mmap.regions[i].base, mmap.regions[i].size);
+			return false;
+		}
 	}
 
 	if (!reserve_kernel_img_pages()) {

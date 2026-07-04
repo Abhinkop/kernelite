@@ -229,23 +229,11 @@ int main(const uint64_t *boot_args_ptr)
 	run_internal_tests(fdt_addr);
 #endif
 
-	// This needs to done before setting up the global allocator.
-	// As it sets a page allocator for the static `idmap_pg_dir_start` area
-	if (!setup_kernel_id_map()) {
+	// This needs to be done before setting up the global allocator. It
+	// registers a temporary allocator region over the static id-map area
+	// and identity-maps the serial console for early output.
+	if (!setup_kernel_id_map(uart0_base)) {
 		kprintf("Error while setting up id map\n");
-		return 1;
-	}
-
-	// Id map uart before setting up allocator.
-	bool uart_mapped =
-		map_page(get_id_map_root(), uart0_base, uart0_base,
-			 (page_permissions_t){ .execute = false,
-					       .read = true,
-					       .write = true,
-					       .user_accessible = false },
-			 DEVICE);
-	if (!uart_mapped) {
-		kprintf("Error while id mapping uart\n");
 		return 1;
 	}
 
@@ -275,13 +263,13 @@ int main(const uint64_t *boot_args_ptr)
 	}
 
 	// Map uart to high virtual address.
-	uart_mapped = map_page(get_kernel_map_root(), uart0_base + KERNEL_BASE,
-			       uart0_base,
-			       (page_permissions_t){ .execute = false,
-						     .read = true,
-						     .write = true,
-						     .user_accessible = false },
-			       DEVICE);
+	bool uart_mapped = map_page(
+		get_kernel_map_root(), uart0_base + KERNEL_BASE, uart0_base,
+		(page_permissions_t){ .execute = false,
+				      .read = true,
+				      .write = true,
+				      .user_accessible = false },
+		DEVICE);
 	if (!uart_mapped) {
 		kprintf("Error while mapping uart\n");
 		return 1;
