@@ -140,7 +140,11 @@ bool test_page_table_mapping(page_table_t *root, virt_addr v_addr,
  */
 bool page_table_map(void)
 {
-	page_table_t *root = (page_table_t *)page_alloc(1);
+	phy_addr root_phys_addr = page_alloc(1);
+	EXPECT_NEQ(root_phys_addr, PHYS_ADDR_NULL);
+
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	page_table_t *root = (page_table_t *)pa_to_va(root_phys_addr);
 
 	// Group 1: Share L0, L1, L2 — only L3 entries differ
 	// VA bits [47:39]=0, [38:30]=0, [29:21]=0, [20:12]=1,2,3,4
@@ -235,12 +239,9 @@ bool page_table_map(void)
  */
 bool init_page_table_map(void)
 {
-	virt_addr uart0_base = 0x09000000;
-	EXPECT(setup_kernel_id_map());
-	EXPECT(map_page(get_id_map_root(), uart0_base, uart0_base,
-			(page_permissions_t){
-				.execute = false, .read = true, .write = true },
-			DEVICE))
+	invalidate_all_memory_chunks();
+	phy_addr uart0_base = 0x09000000;
+	EXPECT(setup_kernel_id_map(uart0_base));
 	return true;
 }
 

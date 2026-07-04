@@ -345,16 +345,28 @@ bool map_page(page_table_t *root, virt_addr v_addr, phy_addr phy_addr,
 void dump_memory_map(page_table_t *root);
 
 /**
- * @brief Sets up the initial identity kernel map
- * @return true on success, false on failure (e.g., if allocation fails).
+ * @brief Set up the initial identity-mapped region for the kernel.
+ *
+ * Creates the early page-table mappings needed during low-virtual-address
+ * boot, including the serial-device mapping used by the early console.
+ *
+ * @param serial_device_addr_base Physical base address of the serial device
+ * to map during early boot.
+ * @return true on success, false on failure such as an allocation error or
+ * invalid mapping setup.
  */
-bool setup_kernel_id_map();
+bool setup_kernel_id_map(phy_addr serial_device_addr_base);
 
 /**
- * @brief Sets up the  kernel map
- * @param mmap Pointer to the memory map structure containing the physical
- * memory layout.
- * @return true on success, false on failure (e.g., if allocation fails).
+ * @brief Set up the kernel's higher-half virtual-memory map.
+ *
+ * Maps every region described by @p mmap into the higher half, giving pages
+ * within the kernel image RWX permissions and all other pages RW.
+ *
+ * @param mmap Pointer to the memory map structure describing the available
+ * physical-memory regions.
+ * @return true on success, false on failure such as an empty memory map, an
+ * allocation error, or an invalid mapping configuration.
  */
 bool setup_kernel_map(memory_map_t *mmap);
 

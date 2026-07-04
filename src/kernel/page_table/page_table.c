@@ -308,11 +308,14 @@ static void set_next_level_table(page_table_entry_t *entry,
  */
 static bool allocate_new_table(table_desc_t *entry)
 {
-	page_table_t *new_table = (page_table_t *)page_alloc(1);
-	if (new_table == NULL) {
+	phy_addr new_table_phys = page_alloc(1);
+	if (new_table_phys == PHYS_ADDR_NULL) {
 		kprintf("Failed to allocate new page table\n");
 		return false;
 	}
+
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	page_table_t *new_table = (page_table_t *)pa_to_va(new_table_phys);
 
 	page_table_init(new_table);
 
@@ -356,6 +359,68 @@ static page_table_t *get_next_level_table(table_desc_t *entry,
 
 	// space NOLINTNEXTLINE(*-int-to-ptr)
 	return (page_table_t *)pa_to_va(next_table_addr);
+}
+
+/**
+ * @brief Maps one physical region into the higher-half kernel map.
+ *
+ * Maps every page of @p region to its higher-half virtual address
+ * (physical + KERNEL_BASE). Pages that fall inside the kernel image
+ * [@c image_start, @c image_end) are mapped RWX; all other pages are mapped RW.
+ *
+ * @param region     Physical-memory region to map; its base is assumed to be
+ * page-aligned.
+ * @param root_table Root of the page table to populate.
+ * @return true if every page was mapped, false on a NULL argument or a failed
+ * page mapping.
+ */
+static bool map_mem_region(memory_region_t *region, page_table_t *root_table)
+{
+	if (!region || !root_table) {
+		return false;
+	}
+
+	uintptr_t cur_phy_addr = region->base;
+	uintptr_t end_phy_addr = (uintptr_t)region->base + region->size;
+
+	kprintf("MMU: Creating kernel Map (0x%lx -> 0x%lx)\n", cur_phy_addr,
+		end_phy_addr);
+
+	const page_permissions_t rw_perms = { .read = true,
+					      .write = true,
+					      .execute = false,
+					      .user_accessible = false };
+	const page_permissions_t rwx_perms = { .read = true,
+					       .write = true,
+					       .execute = true,
+					       .user_accessible = false };
+
+	while (cur_phy_addr < end_phy_addr) {
+		page_permissions_t perms = rw_perms;
+		if (cur_phy_addr >= (uintptr_t)&image_start &&
+		    cur_phy_addr < (uintptr_t)&image_end) {
+			perms = rwx_perms;
+			// For the kernel code region, give RWX
+			// (RW is needed to allow for self-modifying code
+			// patterns like patching the page tables themselves,
+			// and X is needed for execution) Note: The kernel data
+			// region is also given RWX permissions here for
+			// simplicity, but in a more security-conscious design,
+			// you might want to separate the code and data regions
+			// and give them different permissions (e.g., RX for
+			// code and RW for data).
+		}
+		if (!map_page(root_table, cur_phy_addr + KERNEL_BASE,
+			      cur_phy_addr, perms, NORMAL)) {
+			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
+				cur_phy_addr);
+			return false;
+		}
+
+		cur_phy_addr += PAGE_SIZE;
+	}
+
+	return true;
 }
 
 /**
@@ -772,15 +837,16 @@ void dump_memory_map(page_table_t *root)
 	kprintf("--- Memory Map Dump End ---\n");
 }
 
-bool setup_kernel_id_map(void)
+bool setup_kernel_id_map(phy_addr serial_device_addr_base)
 {
+	phy_addr idmap_pg_dir_bitmap_start_addr = get_id_map_region_start();
 	void *idmap_pg_dir_start_addr = get_id_map_root();
 
 	// Initialize the page tracking block allocated for the ID map
 	// structures
-	bool page_init_result =
-		page_init(va_to_pa((virt_addr)idmap_pg_dir_start_addr),
-			  (size_t)ID_MAP_SIZE);
+	bool page_init_result = page_allocator_add_region(
+		idmap_pg_dir_bitmap_start_addr, (size_t)ID_MAP_SIZE + PAGE_SIZE,
+		false);
 	if (!page_init_result) {
 		kprintf("Error: Failed while setting up initial static page idmap pool\n");
 		return false;
@@ -789,10 +855,15 @@ bool setup_kernel_id_map(void)
 	// Allocate the root Level 0 page table frame from the newly
 	// initialized pool. This should be intentionally done first after the
 	// page allocator is initialized
-	page_table_t *root = (page_table_t *)page_alloc(1);
-	if (root == NULL ||
-	    // let the check be here to ensure we are using the right map
-	    ((void *)root != idmap_pg_dir_start_addr)) {
+	phy_addr root_phys_addr = page_alloc(1);
+	if (root_phys_addr == PHYS_ADDR_NULL) {
+		kprintf("Error: Failed while allocating initial static page idmap root\n");
+		return false;
+	}
+
+	// NOLINTNEXTLINE(*-int-to-ptr)
+	page_table_t *root = (page_table_t *)pa_to_va(root_phys_addr);
+	if (((void *)root != idmap_pg_dir_start_addr)) {
 		kprintf("Error: Failed while allocating initial static page idmap root\n");
 		return false;
 	}
@@ -819,14 +890,27 @@ bool setup_kernel_id_map(void)
 		cur_vaddr += PAGE_SIZE;
 	}
 
+	bool serial_mapped =
+		map_page(get_id_map_root(), serial_device_addr_base,
+			 serial_device_addr_base,
+			 (page_permissions_t){ .execute = false,
+					       .read = true,
+					       .write = true,
+					       .user_accessible = false },
+			 DEVICE);
+	if (!serial_mapped) {
+		kprintf("Error while id mapping serial device page\n");
+		return false;
+	}
+
+	page_allocator_remove_region(idmap_pg_dir_bitmap_start_addr);
+
 	return true;
 }
 
 bool setup_kernel_map(memory_map_t *const mmap)
 {
-	// Todo: In the future, we can extend this function to support multiple
-	// memory.
-	if (mmap == NULL || mmap->count != 1) {
+	if (!mmap || mmap->count == 0) {
 		kprintf("Error: Invalid memory map provided for kernel mapping\n");
 		return false;
 	}
@@ -835,45 +919,12 @@ bool setup_kernel_map(memory_map_t *const mmap)
 
 	page_table_init(kernel_map_root);
 
-	uintptr_t cur_phy_addr = mmap->regions[0].base;
-	uintptr_t end_phy_addr =
-		(uintptr_t)mmap->regions[0].base + mmap->regions[0].size;
-
-	kprintf("MMU: Creating kernel Map (0x%lx -> 0x%lx)\n", cur_phy_addr,
-		end_phy_addr);
-
-	const page_permissions_t rw_perms = { .read = true,
-					      .write = true,
-					      .execute = false,
-					      .user_accessible = false };
-	const page_permissions_t rwx_perms = { .read = true,
-					       .write = true,
-					       .execute = true,
-					       .user_accessible = false };
-
-	while (cur_phy_addr < end_phy_addr) {
-		page_permissions_t perms = rw_perms;
-		if (cur_phy_addr >= (uintptr_t)&image_start &&
-		    cur_phy_addr < (uintptr_t)&image_end) {
-			perms = rwx_perms;
-			// For the kernel code region, give RWX
-			// (RW is needed to allow for self-modifying code
-			// patterns like patching the page tables themselves,
-			// and X is needed for execution) Note: The kernel data
-			// region is also given RWX permissions here for
-			// simplicity, but in a more security-conscious design,
-			// you might want to separate the code and data regions
-			// and give them different permissions (e.g., RX for
-			// code and RW for data). For this example, we
-		}
-		if (!map_page(kernel_map_root, cur_phy_addr + KERNEL_BASE,
-			      cur_phy_addr, perms, NORMAL)) {
-			kprintf("Error: Failed while mapping page at vaddr/paddr: 0x%lx\n",
-				cur_phy_addr);
+	for (int i = 0; i < mmap->count; i++) {
+		if (!map_mem_region(&mmap->regions[i], kernel_map_root)) {
+			kprintf("Error: Failed while mapping memory region %d\n",
+				i);
 			return false;
 		}
-
-		cur_phy_addr += PAGE_SIZE;
 	}
 
 	return true;
