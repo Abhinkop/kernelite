@@ -169,8 +169,9 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 		     : "memory");
 
 	kprintf("Freeing id map page table pages...\n");
-	virt_addr id_map_root = (virt_addr)get_id_map_root();
-	page_free(va_to_pa(id_map_root), ID_MAP_NUM_PAGES);
+	virt_addr id_map_region = (virt_addr)get_id_map_region_start();
+	/* The +1 is for the bitmap */
+	page_free(va_to_pa(id_map_region), ID_MAP_NUM_PAGES + 1);
 
 	kprintf("Hello World from high-half!\n");
 
