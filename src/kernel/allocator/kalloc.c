@@ -285,7 +285,7 @@ void *kmalloc(size_t size)
 	 * replaced with a sub-page/free-list scheme later without changing the
 	 * kmalloc()/kfree() interface, which is what callers depend on.
 	 */
-	size_t num_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+	size_t num_pages = NUM_PAGES(size);
 	phy_addr p_addr = page_alloc(num_pages);
 	if (p_addr == PHYS_ADDR_NULL) {
 		kprintf("Failed to allocate pages for kmalloc\n");
@@ -306,7 +306,7 @@ void kfree(void *ptr)
 	allocated_block_desc_t *block = remove_from_allocated_list(ptr);
 	if (block != NULL) {
 		phy_addr p_addr = va_to_pa((virt_addr)block->ptr);
-		size_t num_pages = (block->size + PAGE_SIZE - 1) / PAGE_SIZE;
+		size_t num_pages = NUM_PAGES(block->size);
 		page_free(p_addr, num_pages);
 		free_management_page_if_empty(block);
 	} else {

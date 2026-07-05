@@ -145,8 +145,7 @@ static bool page_init_chunk(phy_addr mem_start, size_t mem_size,
 
 	// 2. Calculate bitmap requirements
 	const size_t bitmap_size_bytes = (total_pages + 7) / 8;
-	const size_t bitmap_size_pages =
-		(bitmap_size_bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+	const size_t bitmap_size_pages = NUM_PAGES(bitmap_size_bytes);
 
 	// check if the bitmap region overlaps with the kernel binary
 	if (check_kernel_overlap &&
