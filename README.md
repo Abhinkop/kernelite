@@ -17,7 +17,7 @@
 * **docs/**: Technical specifications and Doxygen configuration.
 * **src/boot/**: Kernel entry point — EL setup and initial CPU handoff from the bootloader.
 * **src/kernel/**: Core kernel subsystems.
-    * **allocator/**: Physical page allocator.
+    * **allocator/**: Physical page allocator and the kernel heap allocator (`kmalloc`/`kfree`) layered on top of it.
     * **drivers/**: Hardware drivers.
         * PL011 UART
         * GICv3 interrupt controller
@@ -34,7 +34,7 @@
     * **utils/**: `kprintf`, string utilities.
     * **main.c**: Kernel `main()` entry.
 * **src/include/**: Public headers mirroring the `src/kernel/` layout, plus the linker script (`linker/linker.lds`).
-* **tests/**: In-kernel unit tests for page table mapping and linker symbol layout, run on QEMU when built with `make TEST=1`.
+* **tests/**: In-kernel unit tests (page table mapping, linker symbol layout, string utilities, the page and heap allocators, memory layout, and FDT parsing) plus GIC and timer integration tests, run on QEMU when built with `make TEST=1`.
 * **tools/register_decoder/**: Standalone utility for decoding AArch64 system register values (SCTLR_EL1).
 
 ## 🛠 Building & Running
