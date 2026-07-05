@@ -5,6 +5,7 @@
 
 #include "../src/include/asm/asm_helper.h"
 #include "../src/include/icu/icu.h"
+
 #include "test.h"
 
 #include <stdbool.h>
