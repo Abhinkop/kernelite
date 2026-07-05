@@ -9,6 +9,7 @@
  * @date 2026-04-25
  */
 
+#include "allocator/kalloc.h"
 #include "allocator/page_allocator.h"
 #include "asm/asm_helper.h"
 #include "drivers/uart.h"
@@ -20,6 +21,7 @@
 #include "page_table/page_table.h"
 #include "timer/timer.h"
 #include "utils/kprintf.h"
+#include "utils/string.h"
 #include "utils/utils.h"
 
 #include <libfdt.h>
@@ -198,6 +200,18 @@ static void __attribute__((noinline)) high_half_main(phy_addr fdt_addr)
 	while (ticks < max_num_of_ticks) {
 		asm volatile("wfi");
 		ticks++;
+	}
+
+	const char *msg = "Message in kmalloced memory.\n";
+	const size_t msg_len = strlen(msg);
+	char *ptr = (char *)kmalloc(msg_len + 1);
+	if (ptr != NULL) {
+		// NOLINTNEXTLINE(*DeprecatedOrUnsafeBufferHandling)
+		memcpy(ptr, msg, msg_len + 1);
+		kprintf("%s", ptr);
+		kfree(ptr);
+	} else {
+		kprintf("Failed to allocate memory for exit message\n");
 	}
 
 	exit(0);
