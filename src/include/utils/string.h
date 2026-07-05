@@ -15,6 +15,8 @@
 
 #include <stddef.h>
 
+// NOLINTBEGIN(*-redundant-declaration, *-parameter-name)
+
 /**
  * @brief Copies @p size bytes from memory area @p src to memory area @p dest.
  * @note The memory areas must not overlap. Use memmove() if they do.
@@ -74,6 +76,21 @@ void *memmove(void *dest, const void *src, size_t size);
  * @return  A pointer to the memory area @p s_ptr.
  */
 void *memset(void *s_ptr, int val, size_t size);
+
+/**
+ * @brief Bounds-checked fill of @p dest with a constant byte.
+ *
+ * Writes @p count copies of @p byte into @p dest after validating that the
+ * write fits within @p destsz. The operation is rejected if @p dest is NULL,
+ * @p destsz is zero, or @p count exceeds @p destsz.
+ *
+ * @param dest   Pointer to the memory area to fill.
+ * @param destsz Size of the destination buffer, in bytes.
+ * @param byte   The byte value to write.
+ * @param count  Number of bytes to set.
+ * @return 0 on success, or -1 if the arguments fail validation.
+ */
+int memset_s(void *dest, size_t destsz, int byte, size_t count);
 
 /**
  * @brief Locate the first occurrence of a character in a string.
@@ -137,5 +154,7 @@ unsigned long strtoul(const char *nptr, char **endptr, int base);
  * - A positive value if @p lhs is greater than @p rhs.
  */
 int strcmp(const char *lhs, const char *rhs);
+
+// NOLINTEND(*-redundant-declaration, *-parameter-name)
 
 #endif // UTILS_STRING_H

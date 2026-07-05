@@ -77,6 +77,19 @@ void *memset(void *s_ptr, int val, size_t size)
 	return s_ptr;
 }
 
+int memset_s(void *dest, size_t destsz, int byte, size_t count)
+{
+	if (dest == NULL || destsz == 0 || count > destsz) {
+		return -1;
+	}
+
+	// Internal call can be replaced later when libfdt upgrades and uses
+	// memset_s instead of memset
+	// NOLINTNEXTLINE(*DeprecatedOrUnsafeBufferHandling)
+	memset(dest, byte, count);
+	return 0; // Success
+}
+
 char *strchr(const char *str, int chr)
 {
 	while (1) {
