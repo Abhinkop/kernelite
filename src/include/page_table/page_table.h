@@ -31,6 +31,11 @@
 #define PTRS_PER_TABLE 512
 
 /**
+ * @brief Calculate the number of pages needed for a given size.
+ */
+#define NUM_PAGES(size) (((size) + PAGE_SIZE - 1) / PAGE_SIZE)
+
+/**
  * @brief Software representation of architectural page mapping privileges.
  *
  * This tracking structure is used by the Virtual Memory Manager (VMM) to

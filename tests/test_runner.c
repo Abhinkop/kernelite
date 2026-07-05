@@ -34,6 +34,7 @@ extern test_suite_t get_string_test_suite(void);
 extern test_suite_t get_mem_layout_test_suite(void);
 extern test_suite_t get_fdt_test_suite(void);
 extern test_suite_t get_page_allocator_test_suite(void);
+extern test_suite_t get_kalloc_test_suite(void);
 
 /**
  * @brief Exit QEMU with a specific code.
@@ -144,6 +145,7 @@ void run_internal_tests(const void *fdt_addr)
 	RUN_SUITE(get_mem_layout_test_suite);
 	RUN_SUITE(get_fdt_test_suite);
 	RUN_SUITE(get_page_allocator_test_suite);
+	RUN_SUITE(get_kalloc_test_suite);
 
 #undef RUN_SUITE
 

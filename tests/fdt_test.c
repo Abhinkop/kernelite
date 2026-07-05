@@ -4,6 +4,7 @@
  */
 
 #include "../src/include/fdt/fdt.h"
+
 #include "test.h"
 
 #include <stdint.h>

@@ -4,6 +4,7 @@
  */
 
 #include "../src/include/utils/string.h"
+
 #include "test.h"
 
 #include <stddef.h>
@@ -115,6 +116,65 @@ static bool test_memset_truncates_to_byte(void)
 	memset(buf, 0x1FF, 4);
 
 	EXPECT_EQ(buf[0], 0xFF);
+	return true;
+}
+
+/** @brief Valid request fills the buffer and returns success (0). */
+static bool test_memset_s_basic(void)
+{
+	uint8_t buf[8] = { 0 };
+
+	int ret = memset_s(buf, sizeof(buf), 0xCD, sizeof(buf));
+
+	EXPECT_EQ(ret, 0);
+	for (size_t i = 0; i < sizeof(buf); i++) {
+		EXPECT_EQ(buf[i], 0xCD);
+	}
+	return true;
+}
+
+/** @brief count equal to destsz is in-bounds and must succeed. */
+static bool test_memset_s_count_equals_destsz(void)
+{
+	uint8_t buf[4] = { 0 };
+
+	int ret = memset_s(buf, sizeof(buf), 0x11, sizeof(buf));
+
+	EXPECT_EQ(ret, 0);
+	EXPECT_EQ(buf[3], 0x11);
+	return true;
+}
+
+/** @brief A NULL destination must be rejected with -1. */
+static bool test_memset_s_null_dest_fails(void)
+{
+	EXPECT_EQ(memset_s(NULL, 8, 0x00, 4), -1);
+	return true;
+}
+
+/** @brief A zero destination size must be rejected with -1. */
+static bool test_memset_s_zero_destsz_fails(void)
+{
+	uint8_t buf[4] = { 0xAA, 0xAA, 0xAA, 0xAA };
+
+	EXPECT_EQ(memset_s(buf, 0, 0x00, 4), -1);
+	/* Rejected before any write, so the buffer is untouched. */
+	EXPECT_EQ(buf[0], 0xAA);
+	return true;
+}
+
+/** @brief count larger than destsz is rejected and writes nothing. */
+static bool test_memset_s_count_exceeds_destsz_fails(void)
+{
+	uint8_t buf[4] = { 0xAA, 0xAA, 0xAA, 0xAA };
+
+	int ret = memset_s(buf, sizeof(buf), 0x55, sizeof(buf) + 1);
+
+	EXPECT_EQ(ret, -1);
+	/* Must not have partially written the buffer. */
+	for (size_t i = 0; i < sizeof(buf); i++) {
+		EXPECT_EQ(buf[i], 0xAA);
+	}
 	return true;
 }
 
@@ -385,6 +445,11 @@ test_suite_t get_string_test_suite(void)
 	ADD(test_memset_basic);
 	ADD(test_memset_zero);
 	ADD(test_memset_truncates_to_byte);
+	ADD(test_memset_s_basic);
+	ADD(test_memset_s_count_equals_destsz);
+	ADD(test_memset_s_null_dest_fails);
+	ADD(test_memset_s_zero_destsz_fails);
+	ADD(test_memset_s_count_exceeds_destsz_fails);
 	ADD(test_memchr_found);
 	ADD(test_memchr_not_found);
 	ADD(test_memchr_zero_size);

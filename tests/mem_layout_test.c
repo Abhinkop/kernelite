@@ -4,6 +4,7 @@
  */
 
 #include "../src/include/mem_layout/mem_layout.h"
+
 #include "test.h"
 
 #include <stdint.h>

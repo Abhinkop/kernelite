@@ -68,7 +68,8 @@ TARGET_ELF = $(BUILD_DIR)/images/$(IMG_NAME).elf
 TARGET = $(BUILD_DIR)/images/$(IMG_NAME)
 
 # Source files
-SRCS_C  = $(SRC_DIR)/kernel/allocator/page_allocator.c \
+SRCS_C  = $(SRC_DIR)/kernel/allocator/kalloc.c \
+		  $(SRC_DIR)/kernel/allocator/page_allocator.c \
 		  $(SRC_DIR)/kernel/exit/exit.c \
 		  $(SRC_DIR)/kernel/main.c \
 		  $(SRC_DIR)/kernel/drivers/arm_timer.c \

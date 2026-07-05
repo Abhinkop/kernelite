@@ -8,6 +8,7 @@
 #include "../src/include/linker/linker_defines.h"
 #include "../src/include/linker/symbols.h"
 #include "../src/include/mem_layout/mem_layout.h"
+
 #include "test.h"
 
 #include <stdbool.h>
@@ -217,6 +218,7 @@ static bool sample_multiregion_test(void)
 	page_allocator_add_region(regions[1].base, regions[1].size, false);
 	ptr = page_alloc(1);
 	EXPECT_EQ(ptr, regions[1].base + PAGE_SZ);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -257,6 +259,7 @@ static bool test_alloc_fills_then_spills_then_exhausts(void)
 
 	/* Both regions exhausted. */
 	EXPECT_EQ(page_alloc(1), PHYS_ADDR_NULL);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -276,6 +279,7 @@ static bool test_multi_page_alloc_is_contiguous(void)
 	EXPECT_EQ(page_alloc(2), region.base + 4 * PAGE_SZ);
 	/* All 5 usable pages are gone. */
 	EXPECT_EQ(page_alloc(1), PHYS_ADDR_NULL);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -294,6 +298,7 @@ static bool test_alloc_skips_region_that_is_too_small(void)
 
 	/* 4 pages don't fit in region 0, so region 1 serves the request. */
 	EXPECT_EQ(page_alloc(4), regions[1].base + 1 * PAGE_SZ);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -313,6 +318,7 @@ static bool test_alloc_does_not_span_regions(void)
 
 	/* 5 contiguous pages fit in neither region. */
 	EXPECT_EQ(page_alloc(5), PHYS_ADDR_NULL);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -334,6 +340,7 @@ static bool test_freed_page_is_reused_first(void)
 	page_free(second, 1);
 	/* Page 2 is the lowest free index again, so it comes back next. */
 	EXPECT_EQ(page_alloc(1), region.base + 2 * PAGE_SZ);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -354,6 +361,7 @@ static bool test_reserved_page_is_skipped(void)
 	EXPECT_EQ(page_alloc(1), region.base + 3 * PAGE_SZ);
 	EXPECT_EQ(page_alloc(1), region.base + 4 * PAGE_SZ);
 	EXPECT_EQ(page_alloc(1), PHYS_ADDR_NULL);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -374,6 +382,7 @@ static bool test_removed_region_is_not_allocated_from(void)
 
 	/* Region 0 is gone, so region 1 serves the allocation. */
 	EXPECT_EQ(page_alloc(1), regions[1].base + 1 * PAGE_SZ);
+	invalidate_all_memory_chunks();
 	return true;
 }
 
@@ -392,6 +401,7 @@ static bool test_add_region_hits_chunk_limit(void)
 	}
 	/* ...and the eleventh is refused rather than overflowing the table. */
 	EXPECT(!page_allocator_add_region(base + 10 * sub, sub, false));
+	invalidate_all_memory_chunks();
 	return true;
 }
 

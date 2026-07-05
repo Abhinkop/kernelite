@@ -7,6 +7,7 @@
 #include "../src/include/icu/icu.h"
 #include "../src/include/utils/utils.h"
 #include "../src/kernel/drivers/gicv3.h"
+
 #include "test.h"
 
 #include <stdbool.h>

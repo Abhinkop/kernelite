@@ -65,7 +65,7 @@ static inline current_el_t read_current_el(void)
 static bool reserve_kernel_img_pages(void)
 {
 	size_t img_size = get_image_size();
-	size_t num_pages = (img_size + PAGE_SIZE - 1) / PAGE_SIZE;
+	size_t num_pages = NUM_PAGES(img_size);
 	void *img_start = (void *)&image_start;
 
 	kprintf("Reserving kernel image pages: start=%p, size=0x%lx bytes, pages=0x%lx\n",
@@ -91,7 +91,7 @@ static bool reserve_kernel_img_pages(void)
 static bool reserve_fdt_pages(const void *fdt_addr)
 {
 	size_t fdt_size = fdt_totalsize(fdt_addr);
-	size_t num_pages = (fdt_size + PAGE_SIZE - 1) / PAGE_SIZE;
+	size_t num_pages = NUM_PAGES(fdt_size);
 
 	kprintf("Reserving FDT pages: start=%p, size=0x%lx bytes, pages=0x%lx\n",
 		fdt_addr, fdt_size, num_pages);
